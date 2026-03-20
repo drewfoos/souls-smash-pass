@@ -1,0 +1,56 @@
+{
+  "rules": {
+    // ── Global vote counts ────────────────────────────────────────────────────
+    // Anyone can READ the leaderboard (public data).
+    // Writes are BLOCKED — only the Firebase Admin SDK (used by API routes)
+    // can write to /votes, bypassing these rules entirely.
+    "votes": {
+      ".read": true,
+      ".write": false
+    },
+
+    // ── Per-user history ──────────────────────────────────────────────────────
+    // Owner-only: each user can only read/write their own node.
+    // Public profile pages are server-rendered using the Admin SDK (which
+    // bypasses these rules), so there's no need for a public .read rule.
+    // This prevents internal fields (currentId, lastPlayed, lastReset) from
+    // leaking when isPublic is true.
+    "users": {
+      "$uid": {
+        ".read":  "auth !== null && auth.uid === $uid",
+        ".write": "auth !== null && auth.uid === $uid",
+
+        // Field-level validation — prevents abuse even if client code is bypassed
+        "displayName": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
+        },
+        "tagline": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 160)"
+        }
+      }
+    },
+
+    // ── Deleted / archived votes ──────────────────────────────────────────────
+    // Users can read+write their own archive snapshots on reset.
+    // Owner-only: needed so the client can prune old archives (keep latest 3).
+    "deleted": {
+      "$uid": {
+        ".read":  "auth !== null && auth.uid === $uid",
+        ".write": "auth !== null && auth.uid === $uid"
+      }
+    },
+
+    // ── Rate limit counters ────────────────────────────────────────────────
+    // Written only by Admin SDK from API routes — no client access.
+    "rateLimit": {
+      ".read": false,
+      ".write": false
+    },
+
+    // Block all other paths by default
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
