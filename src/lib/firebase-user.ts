@@ -54,6 +54,23 @@ export interface UserData {
 }
 
 // ---------------------------------------------------------------------------
+// saveUserProfile
+//
+// Writes display metadata (displayName, photoURL) for a signed-in user.
+// Called once at sign-in rather than on every vote so profile data stays
+// current without being part of the vote write path.
+// ---------------------------------------------------------------------------
+
+export async function saveUserProfile(user: User): Promise<void> {
+  const db = getFirebaseDatabase();
+  await update(ref(db, `users/${user.uid}`), {
+    displayName: user.displayName ?? "Tarnished",
+    photoURL: user.photoURL ?? null,
+    lastPlayed: Date.now(),
+  });
+}
+
+// ---------------------------------------------------------------------------
 // saveUserHistory
 //
 // Called after a game session ends (client-side, authenticated user only).

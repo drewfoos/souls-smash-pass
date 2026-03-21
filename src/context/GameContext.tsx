@@ -24,12 +24,12 @@ import { getIdToken } from "firebase/auth";
 import { useAuth } from "./AuthContext";
 import { getFirebaseAuth } from "@/lib/firebase";
 import {
-  saveUserHistory,
-  saveUserPosition,
+  saveUserProfile,
   getUserData,
   type VoteChoice,
   type RunConfig,
 } from "@/lib/firebase-user";
+import { VoteQueue, type PendingBatch } from "@/lib/vote-queue";
 import toast from "react-hot-toast";
 
 export type SwipeAction = "smash" | "pass";
@@ -346,6 +346,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     try { localStorage.removeItem(LS_LEGACY_KEY); } catch { /* ignore */ }
     if (saved) {
       dispatch({ type: "RESTORE", payload: saved });
+      voteQueue.current.setFrontier(saved.currentIndex);
     }
     setHasRestored(true); // signal to GameRouter that it can now decide
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -508,6 +509,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (vote) newHistory.push({ character: char, action: vote });
       }
 
+      voteQueue.current.setFrontier(newCurrentIndex);
       dispatch({
         type: "RESTORE",
         payload: {
@@ -523,7 +525,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         },
       });
     },
-    [] // stateRef is a ref — stable across renders
+    [] // stateRef and voteQueue are refs — stable across renders
   );
 
   // ── Sign-in: fetch Firebase data, compare position, use the furthest ahead ─
@@ -555,6 +557,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         const currentState = stateRef.current;
 
+        // Write/refresh profile metadata once at sign-in so display name and
+        // avatar stay current without being part of the vote write path.
+        saveUserProfile(user).catch(console.error);
+
         if (fbCurrentId > localCurrentIndex) {
           // ── Firebase is further ahead — restore from Firebase ─────────────
           restoreFromFirebase(fbVotes, fbCurrentId, data?.runConfig);
@@ -563,17 +569,39 @@ export function GameProvider({ children }: { children: ReactNode }) {
           try { localStorage.removeItem(LS_OFFLINE_KEY); } catch { /* ignore */ }
         } else {
           // ── Local is ahead (or equal) — keep local, sync to Firebase ──────
-
-          // Sync locally-voted characters + position + run config to Firebase.
-          // saveUserHistory already writes currentId, so a separate
-          // saveUserPosition call is not needed.
+          //
+          // Route the catch-up batch through /api/vote so the server's dedup
+          // and delta logic handles it correctly. This is the same path used
+          // for every in-game vote — no split write path.
           if (localHistory.length > 0) {
             const hasUnsynced = localHistory.some((h) => !fbVotes[h.character.id]);
             if (hasUnsynced) {
               const rc = buildRunConfig(currentState);
-              saveUserHistory(user, localHistory, localCurrentIndex, rc)
-                .then(() => {
-                  // Update local previousVotes so delta calc is correct next time
+              const batchVotes = localHistory.map((h) => ({
+                characterId: h.character.id,
+                action: h.action,
+              }));
+              getIdToken(user)
+                .then((token) =>
+                  fetch("/api/vote", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      votes: batchVotes,
+                      currentIndex: localCurrentIndex,
+                      runConfig: rc,
+                    }),
+                  })
+                )
+                .then((r) => (r.ok ? r.json() : null))
+                .then((data) => {
+                  if (data?.voteCounts) {
+                    setVoteCounts((prev) => ({ ...prev, ...data.voteCounts }));
+                  }
+                  // Update previousVotes so future delta calcs are correct.
                   const updated = { ...fbVotes };
                   for (const h of localHistory) updated[h.character.id] = h.action;
                   previousVotesRef.current = updated;
@@ -581,10 +609,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 })
                 .catch(console.error);
             }
-          } else if (localCurrentIndex > 0) {
-            // No unsynced votes but position has advanced — sync position + run config
-            const rc = buildRunConfig(currentState);
-            saveUserPosition(user, localCurrentIndex, rc).catch(console.error);
           }
 
           // Migrate offline progress to the signed-in key
@@ -635,46 +659,47 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("focus", handleFocus);
   }, [user]);
 
-  // ── Per-vote submission ─────────────────────────────────────────────────
-  // Flushes immediately on each swipe (BATCH_SIZE = 1) so OthersChose counts
-  // are live right after swiping. Entirely fire-and-forget — the fetch runs
-  // in the background and updates voteCounts on success, silently fails on
-  // error. Not async because callers don't await it.
-  const BATCH_SIZE = 1;
-  const pendingVotes = useRef<Array<{ characterId: string; action: SwipeAction }>>([]);
+  // ── Per-vote submission ──────────────────────────────────────────────────
+  // The VoteQueue state machine manages the pending batch (votes, runConfig,
+  // currentIndex). All three fields are captured at queue time — never
+  // recomputed during flush — so each batch is sent with exactly the config
+  // that was active when those votes were cast.
+  //
+  // sendBatch fires the actual fetch. flushVotes drains the queue and calls
+  // sendBatch. queueVote enqueues one vote; VoteQueue.enqueue returns a batch
+  // for immediate dispatch when the batch is full or the runConfig changed.
+  const BATCH_SIZE = 5;
+  const FLUSH_DEBOUNCE_MS = 2_000;
 
-  const flushVotes = useCallback(() => {
-    if (pendingVotes.current.length === 0) return;
-    const votes = [...pendingVotes.current];
-    pendingVotes.current = [];
+  const voteQueue = useRef(new VoteQueue(BATCH_SIZE));
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Build request headers — include auth token if user is signed in
-    // so the server can use trusted vote history for correct deltas.
-    const reqHeaders: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+  const sendBatch = useCallback((batch: PendingBatch): Promise<void> => {
+    const { votes, runConfig, currentIndex } = batch;
 
+    const reqHeaders: Record<string, string> = { "Content-Type": "application/json" };
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
 
-    // Resolve the auth token first (if signed in), then fire the fetch.
-    // Both are fire-and-forget — no caller awaits this.
     const auth = getFirebaseAuth();
     const firebaseUser = auth.currentUser;
     const tokenPromise = firebaseUser
       ? getIdToken(firebaseUser).catch(() => null)
       : Promise.resolve(null);
 
-    tokenPromise.then((token) => {
+    return tokenPromise.then((token) => {
       if (token) reqHeaders["Authorization"] = `Bearer ${token}`;
 
-      // previousVotes is NOT sent — the server derives prior state from
-      // /users/{uid}/votes for authenticated users, and uses increment-only
-      // for anonymous users.
-      fetch("/api/vote", {
+      const body: Record<string, unknown> = { votes };
+      if (token) {
+        body.currentIndex = currentIndex;
+        body.runConfig = runConfig;
+      }
+
+      return fetch("/api/vote", {
         method: "POST",
         headers: reqHeaders,
-        body: JSON.stringify({ votes }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       })
         .then((r) => (r.ok ? r.json() : null))
@@ -684,21 +709,57 @@ export function GameProvider({ children }: { children: ReactNode }) {
           }
         })
         .catch(() => {
-          // silently fail — local stats still work
+          // Silently fail — local stats still work offline
         })
         .finally(() => clearTimeout(timeout));
     });
   }, []);
 
+  const flushVotes = useCallback((): Promise<void> => {
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current);
+      flushTimer.current = null;
+    }
+    const batch = voteQueue.current.flush();
+    if (!batch || batch.votes.length === 0) return Promise.resolve();
+    return sendBatch(batch);
+  }, [sendBatch]);
+
   const queueVote = useCallback(
     (characterId: string, action: SwipeAction) => {
-      pendingVotes.current.push({ characterId, action });
-      if (pendingVotes.current.length >= BATCH_SIZE) {
-        flushVotes();
+      const rc = buildRunConfig(stateRef.current);
+
+      // VoteQueue.enqueue returns a batch to send immediately when the batch
+      // is full or the runConfig changed (old batch returned in the latter case).
+      const batchToFlush = voteQueue.current.enqueue(characterId, action, rc);
+      if (batchToFlush) sendBatch(batchToFlush);
+
+      // Set or reset the debounce timer based on whether there is still a
+      // pending (not-yet-full) batch after the enqueue.
+      const hasPending = voteQueue.current.getPending() !== null;
+      if (hasPending) {
+        if (flushTimer.current) clearTimeout(flushTimer.current);
+        flushTimer.current = setTimeout(() => {
+          const b = voteQueue.current.flush();
+          if (b) sendBatch(b);
+        }, FLUSH_DEBOUNCE_MS);
+      } else {
+        // Batch was just fully flushed — cancel any stale timer.
+        if (flushTimer.current) {
+          clearTimeout(flushTimer.current);
+          flushTimer.current = null;
+        }
       }
     },
-    [flushVotes]
+    [sendBatch]
   );
+
+  // Clean up any pending debounce timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (flushTimer.current) clearTimeout(flushTimer.current);
+    };
+  }, []);
 
   // ── Game actions ──────────────────────────────────────────────────────────
 
@@ -711,6 +772,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       toast.error("No characters match those filters!", { id: "empty-filters", duration: 3000 });
       return;
     }
+    voteQueue.current.reset();
     clearProgress(); // clears all keys — fresh start
     dispatch({ type: "START_GAME", payload: { games, types, seed: getWeeklySeed() } });
   }, []);
@@ -729,14 +791,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const char = state.deck[state.currentIndex];
       if (char) queueVote(char.id, action);
       dispatch({ type: "SWIPE", payload: { action } });
-      // Save position + run config to Firebase on every vote.
-      // Fire-and-forget — ensures cross-device sync even mid-session.
-      if (user) {
-        const rc = buildRunConfig(state);
-        saveUserPosition(user, state.currentIndex + 1, rc).catch(console.error);
-      }
+      // Position is now written by the server atomically with each vote batch
+      // (currentIndex is included in the /api/vote payload). No separate client
+      // write needed here.
     },
-    [state.deck, state.currentIndex, state.seed, state.selectedGames, state.selectedTypes, queueVote, user]
+    [state.deck, state.currentIndex, queueVote]
   );
 
   const navigateBack = useCallback(() => {
@@ -762,36 +821,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [state.viewingIndex, state.currentIndex, state.deck, state.gameComplete]);
 
-  // Flush on game complete
+  // On game complete: flush any buffered votes, then update previousVotes and
+  // show the "Picks saved" toast once the last batch has landed.
+  //
+  // No separate saveUserHistory call needed — the server already wrote every
+  // vote (+ currentIndex + runConfig) atomically as part of each flush batch.
   useEffect(() => {
-    if (state.gameComplete) flushVotes();
-  }, [state.gameComplete, flushVotes]);
+    if (!state.gameComplete) return;
 
-  // Save per-user history when game ends; update previousVotes for next game
-  useEffect(() => {
-    if (state.gameComplete && user && state.history.length > 0) {
-      const rc = buildRunConfig(state);
-      saveUserHistory(user, state.history, state.currentIndex, rc)
-        .then(() => {
-          const updated = { ...previousVotesRef.current };
-          for (const entry of state.history) {
-            updated[entry.character.id] = entry.action;
-          }
-          previousVotesRef.current = updated;
-          setPreviousVotes(updated);
-          toast.success("Picks saved", { duration: 2500 });
-        })
-        .catch((err) => {
-          console.error("Failed to save user history:", err);
-          toast.error("Failed to save picks");
-        });
-    }
+    flushVotes().then(() => {
+      if (user && state.history.length > 0) {
+        const updated = { ...previousVotesRef.current };
+        for (const entry of state.history) {
+          updated[entry.character.id] = entry.action;
+        }
+        previousVotesRef.current = updated;
+        setPreviousVotes(updated);
+        toast.success("Picks saved", { duration: 2500 });
+      }
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.gameComplete]);
 
-  // Note: sendBeacon was removed because BATCH_SIZE=1 means votes flush
-  // immediately on each swipe. The unload fallback added complexity (anonymous-
-  // only, no auth headers) for near-zero benefit.
+  // Note: sendBeacon was removed. Votes are batched and flushed frequently
+  // (on batch-size hit, debounce, or game complete), so the unload fallback
+  // added complexity (anonymous-only, no auth headers) for near-zero benefit.
 
   const endGame = useCallback(() => {
     flushVotes();
@@ -799,7 +853,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [flushVotes]);
 
   const reset = useCallback(() => {
-    pendingVotes.current = [];
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current);
+      flushTimer.current = null;
+    }
+    voteQueue.current.reset();
     clearProgress();
     dispatch({ type: "RESET" });
   }, []);

@@ -40,6 +40,16 @@
       }
     },
 
+    // ── Anonymous session vote records ────────────────────────────────────
+    // Written only by Admin SDK from API routes — no client access.
+    // Keyed by SHA-256(sessionId) so raw session identifiers are never stored.
+    // Structure: /anonVotes/{hashedSessionId}/{sanitizedCharId}: "smash"|"pass"
+    //            /anonVotes/{hashedSessionId}/_lastSeen: timestamp
+    "anonVotes": {
+      ".read": false,
+      ".write": false
+    },
+
     // ── Rate limit counters ────────────────────────────────────────────────
     // Written only by Admin SDK from API routes — no client access.
     "rateLimit": {
