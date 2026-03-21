@@ -32,33 +32,27 @@ export type AllVotesMap = Record<string, VotePair>;
 // Returns { smash: 0, pass: 0 } while loading or if no votes exist yet.
 // ---------------------------------------------------------------------------
 
-export function useCharacterVotes(characterId: string | null): { votes: VotePair; loading: boolean } {
+export function useCharacterVotes(characterId: string | null): { votes: VotePair } {
   const [votes, setVotes] = useState<VotePair>({ smash: 0, pass: 0 });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!characterId) {
-      setLoading(false);
+      setVotes({ smash: 0, pass: 0 });
       return;
     }
 
-    setLoading(true);
     const db = getFirebaseDatabase();
     const voteRef = ref(db, `votes/${sanitizeFirebaseKey(characterId)}`);
 
     const unsubscribe = onValue(voteRef, (snapshot) => {
-      const data = snapshot.val();
-      setVotes({
-        smash: data?.smash ?? 0,
-        pass:  data?.pass  ?? 0,
-      });
-      setLoading(false);
+      const raw = snapshot.val();
+      setVotes({ smash: raw?.smash ?? 0, pass: raw?.pass ?? 0 });
     });
 
     return unsubscribe;
   }, [characterId]);
 
-  return { votes, loading };
+  return { votes };
 }
 
 // ---------------------------------------------------------------------------

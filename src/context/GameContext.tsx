@@ -925,7 +925,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // sendBatch. queueVote enqueues one vote; VoteQueue.enqueue returns a batch
   // for immediate dispatch when the batch is full or the runConfig changed.
   const BATCH_SIZE = 5;
-  const FLUSH_DEBOUNCE_MS = 2_000;
+  const FLUSH_DEBOUNCE_MS = 500;
 
   const voteQueue = useRef(new VoteQueue(BATCH_SIZE));
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

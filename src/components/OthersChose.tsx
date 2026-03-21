@@ -3,22 +3,37 @@
 import { type Character, CHARACTER_TYPE_COLORS } from "@/data/characters";
 import { CharacterImage } from "./CharacterImage";
 import { useCharacterVotes } from "@/lib/firebase-realtime";
+import { useGame } from "@/context/GameContext";
 
 interface OthersChoseProps {
   character: Character;
 }
 
 export function OthersChose({ character }: OthersChoseProps) {
-  // Live subscription — updates the moment anyone anywhere votes
-  const { votes, loading } = useCharacterVotes(character.id);
+  // Two data sources:
+  //  1. Firebase realtime subscription — eventually consistent, live updates
+  //  2. GameContext voteCounts cache — updated immediately from API response
+  // Use whichever has more votes (higher total = more recent data).
+  const { votes: realtimeVotes } = useCharacterVotes(character.id);
+  const { voteCounts } = useGame();
+  const cached = voteCounts[character.id];
 
+  const realtimeTotal = realtimeVotes.smash + realtimeVotes.pass;
+  const cachedTotal = cached ? cached.smash + cached.pass : 0;
+
+  // Pick the source with the higher total — that's the most up-to-date
+  const votes = cachedTotal >= realtimeTotal && cached ? cached : realtimeVotes;
   const total = votes.smash + votes.pass;
+
   const typeColors = CHARACTER_TYPE_COLORS[character.type];
   const passPercent  = total > 0 ? (votes.pass  / total) * 100 : 50;
   const smashPercent = total > 0 ? (votes.smash / total) * 100 : 50;
 
+  // Show skeleton until real votes exist.
+  const loading = total === 0;
+
   return (
-    <div className="flex flex-col items-center gap-0.5 animate-fade-in" key={character.id}>
+    <div className="flex flex-col items-center gap-0.5">
       <span className="text-lg font-semibold text-priscilla/80">
         What Others Chose for{" "}
         <span style={{ color: typeColors.text }}>{character.name}</span>...
@@ -42,11 +57,11 @@ export function OthersChose({ character }: OthersChoseProps) {
                   borderRadius: "4px",
                   backgroundColor: "rgba(255, 82, 119, 0.5)",
                   width: `${passPercent}%`,
-                  minWidth: total > 0 ? "4px" : "0px",
+                  minWidth: "4px",
                 }}
               />
               <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
-                {total > 0 ? votes.pass.toLocaleString() : "—"}
+                {votes.pass.toLocaleString()}
               </span>
             </>
           )}
@@ -82,11 +97,11 @@ export function OthersChose({ character }: OthersChoseProps) {
                   borderRadius: "4px",
                   backgroundColor: "rgba(46, 232, 154, 0.5)",
                   width: `${smashPercent}%`,
-                  minWidth: total > 0 ? "4px" : "0px",
+                  minWidth: "4px",
                 }}
               />
               <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
-                {total > 0 ? votes.smash.toLocaleString() : "—"}
+                {votes.smash.toLocaleString()}
               </span>
             </>
           )}

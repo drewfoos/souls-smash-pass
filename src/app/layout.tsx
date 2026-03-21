@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cinzel, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { ConsoleMessage } from "@/components/ConsoleMessage";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -78,6 +79,7 @@ export default function RootLayout({
           />
         </div>
         <div className="relative z-10">
+          <ConsoleMessage />
           <Providers>{children}</Providers>
         </div>
       </body>

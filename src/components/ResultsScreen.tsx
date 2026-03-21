@@ -16,6 +16,7 @@ import {
 import { CharacterImage } from "./CharacterImage";
 import { Leaderboard } from "./Leaderboard";
 import { UserProfile } from "./UserProfile";
+import { ShareButtons } from "./ShareButtons";
 import { useAuth } from "@/context/AuthContext";
 
 export function ResultsScreen() {
@@ -109,6 +110,21 @@ export function ResultsScreen() {
           <span>Picky</span>
           <span>Down Bad</span>
         </div>
+      </div>
+
+      {/* Share */}
+      <div
+        className="flex flex-col items-center gap-2 mb-8 animate-fade-in"
+        style={{ animationDelay: "0.3s" }}
+      >
+        <span className="text-[10px] text-priscilla/30 uppercase tracking-widest">Share your shame</span>
+        <ShareButtons
+          smashed={stats.smashed}
+          passed={stats.passed}
+          total={total}
+          smashPercent={smashPercent}
+          profileUrl={user ? `https://eldensmash.com/users/${user.uid}` : null}
+        />
       </div>
 
       {/* Smash list — grouped by type */}

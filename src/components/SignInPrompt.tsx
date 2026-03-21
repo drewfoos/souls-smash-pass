@@ -13,12 +13,14 @@ const SWIPE_THRESHOLD = 5;
 const LS_DISMISSED_KEY = "signin-prompt-dismissed";
 
 export function SignInPrompt() {
-  const { user, signInWithGoogle } = useAuth();
+  const { user, loading: authLoading, signInWithGoogle } = useAuth();
   const { state } = useGame();
   const [visible, setVisible] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
+    // Wait for auth to resolve — prevents flash on page refresh for signed-in users
+    if (authLoading) return;
     // Don't show if signed in, or already dismissed this session
     if (user) return;
     if (typeof window !== "undefined" && sessionStorage.getItem(LS_DISMISSED_KEY)) return;
@@ -26,7 +28,7 @@ export function SignInPrompt() {
     if (state.currentIndex >= SWIPE_THRESHOLD) {
       setVisible(true);
     }
-  }, [user, state.currentIndex]);
+  }, [user, authLoading, state.currentIndex]);
 
   // Hide once signed in
   useEffect(() => {

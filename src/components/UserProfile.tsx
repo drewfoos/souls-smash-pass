@@ -10,6 +10,7 @@ import {
   type CharacterType,
 } from "@/data/characters";
 import { CharacterImage } from "./CharacterImage";
+import { ShareButtons } from "./ShareButtons";
 import {
   X,
   Heart,
@@ -348,6 +349,20 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
                       </div>
                     </div>
                   </div>
+
+                  {/* Share */}
+                  {stats.total > 0 && (
+                    <div className="flex flex-col items-center gap-2 mb-2">
+                      <span className="text-[10px] text-priscilla/30 uppercase tracking-widest">Share your results</span>
+                      <ShareButtons
+                        smashed={stats.smashed.length}
+                        passed={stats.passed.length}
+                        total={stats.total}
+                        smashPercent={stats.smashPercent}
+                        profileUrl={user ? `https://eldensmash.com/users/${user.uid}` : null}
+                      />
+                    </div>
+                  )}
 
                   {/* Smash list grouped by type */}
                   {stats.smashed.length > 0 && (

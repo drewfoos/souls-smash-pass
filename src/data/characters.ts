@@ -1033,7 +1033,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Frost-wielding warrior from a fallen civilization. Still swinging after all these ages.",
   },
   {
     id: "er_ancient_hero_of_zamor_mountaintops_of_the_giants",
@@ -1041,7 +1041,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Another Zamor hero, this one prefers the cold mountaintops. Consistent brand.",
   },
   {
     id: "er_bloody_finger_nerijus",
@@ -1049,7 +1049,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Dual-wielding invader who ambushes you near a river. Rude.",
   },
   {
     id: "er_astel_stars_of_darkness",
@@ -1057,7 +1057,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A second cosmic horror lurking underground. The void has extras.",
   },
   {
     id: "er_bloody_finger_okina",
@@ -1065,7 +1065,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A blood-crazed swordsman from a distant land. Rivers of Blood enthusiast.",
   },
   {
     id: "er_albinaurics_first_generation",
@@ -1073,7 +1073,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Pale, frog-like humanoids created by a forgotten sorcerer. Just want to live in peace.",
   },
   {
     id: "er_decaying_ekzykes",
@@ -1081,7 +1081,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A dragon rotting alive from Scarlet Rot. Still breathes fire though.",
   },
   {
     id: "er_battlemage_hugues",
@@ -1089,7 +1089,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A sorcerer-knight hybrid who invades your world. Spells AND a big stick.",
   },
   {
     id: "er_bloody_finger_ravenmount_assassin",
@@ -1097,7 +1097,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Stealthy invader from the Ravenmount. Prefers knives to conversation.",
   },
   {
     id: "er_dragonkin_soldier",
@@ -1105,7 +1105,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A hulking dragon-blooded warrior in Siofra River. Lightning fists included.",
   },
   {
     id: "er_beastman_of_farum_azula",
@@ -1113,7 +1113,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Feral warrior from the crumbling sky temple. Part beast, all rage.",
   },
   {
     id: "er_dragonkin_soldier_lake_of_rot",
@@ -1121,7 +1121,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Dragonkin who chose the worst possible swamp to live in.",
   },
   {
     id: "er_chief_guardian_arghanthy",
@@ -1129,7 +1129,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC guardian who takes their job very seriously. No trespassing means no trespassing.",
   },
   {
     id: "er_dragonkin_soldier_of_nokstella",
@@ -1137,7 +1137,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "The fanciest Dragonkin, residing in the eternal city. Underground royalty.",
   },
   {
     id: "er_albinaurics_second_generation",
@@ -1145,7 +1145,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Silver, blob-like Albinaurics who roll around. Somehow even sadder than the first batch.",
   },
   {
     id: "er_dryleaf_dane",
@@ -1161,7 +1161,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Your first dragon encounter. Crashes a perfectly good campfire gathering.",
   },
   {
     id: "er_flying_dragon_greyll",
@@ -1169,7 +1169,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A massive dragon blocking a bridge in Caelid. Toll collector from hell.",
   },
   {
     id: "er_black_blade_kindred",
@@ -1177,7 +1177,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A gargoyle wielding the power of Destined Death. Stationed in Caelid because why not.",
   },
   {
     id: "er_black_blade_kindred_forbidden_lands",
@@ -1185,7 +1185,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Same gargoyle energy, different zip code. Guards the Forbidden Lands.",
   },
   {
     id: "er_ghostflame_dragon",
@@ -1193,7 +1193,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A spectral dragon that breathes deathly cold fire. Undead and fabulous.",
   },
   {
     id: "er_blackgaol_knight",
@@ -1201,7 +1201,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC welcome committee. Locked in a gaol and still harder than most bosses.",
   },
   {
     id: "er_dung_eater",
@@ -1209,7 +1209,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "The most reviled man in the Lands Between. His hobby is exactly what you think.",
   },
   {
     id: "er_ghostflame_dragon_scadu_altus",
@@ -1217,7 +1217,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Another ghostflame dragon haunting Scadu Altus. The afterlife has franchises.",
   },
   {
     id: "er_castellan_edgar_edgar_the_revenger",
@@ -1225,7 +1225,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Castle Morne castellan turned revenge-obsessed father. Grief hits different here.",
   },
   {
     id: "er_ghostflame_dragon_cerulean_coast",
@@ -1233,7 +1233,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Spectral dragon enjoying the coastal views. Death vacation.",
   },
   {
     id: "er_eleonora_violet_bloody_finger",
@@ -1241,7 +1241,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "An elegant dancer who fights with twin blades and bloodflame. Deadly pirouettes.",
   },
   {
     id: "er_glinstone_dragon_adula",
@@ -1249,7 +1249,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A dragon that shoots magic lasers. Rennala's scaly bestie.",
   },
   {
     id: "er_black_knife_assassin",
@@ -1257,7 +1257,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "One of the assassins who murdered Godwyn. Moves like a shadow, strikes like death.",
   },
   {
     id: "er_ensha_of_the_royal_remains",
@@ -1265,7 +1265,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Gideon's silent bodyguard who suddenly attacks you at the Roundtable. Rude awakening.",
   },
   {
     id: "er_black_knife_assassin_liurna",
@@ -1273,7 +1273,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Black Knife operative in Liurnia. Same assassination energy, lakeside edition.",
   },
   {
     id: "er_errant_sorcerer_wilhelm",
@@ -1281,7 +1281,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A rogue sorcerer causing trouble. Left the academy, kept the attitude.",
   },
   {
     id: "er_godefroy_the_grafted",
@@ -1289,7 +1289,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Godrick's equally graft-happy ancestor. Runs in the family apparently.",
   },
   {
     id: "er_black_knife_assassin_sages_cave",
@@ -1297,7 +1297,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Lurking in a hidden cave. Even assassins need a quiet place to work.",
   },
   {
     id: "er_festering_fingerprint_vyke",
@@ -1305,7 +1305,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Once the Tarnished closest to becoming Elden Lord. Chose madness instead.",
   },
   {
     id: "er_black_knife_assassin_sainted_heros_grave",
@@ -1313,7 +1313,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Desecrating a hero's grave. No location is sacred to these assassins.",
   },
   {
     id: "er_bloodhound_knight",
@@ -1321,7 +1321,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Lightning-fast knights who teleport mid-combat. Blink and you're dead.",
   },
   {
     id: "er_fire_knight_queelign",
@@ -1329,7 +1329,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC Fire Knight who guards Messmer's domain. Burns with loyalty.",
   },
   {
     id: "er_bloodhound_knight_darriwil",
@@ -1337,7 +1337,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A rogue Bloodhound Knight. Fast, furious, and locked in an evergaol.",
   },
   {
     id: "er_flame_guardian",
@@ -1345,7 +1345,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC protector wreathed in sacred flame. Very warm personality.",
   },
   {
     id: "er_bols_carian_knight",
@@ -1353,7 +1353,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A troll-sized Carian knight. Big sword, bigger loyalty to the moon.",
   },
   {
     id: "er_greater_potentate",
@@ -1361,7 +1361,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Three powerful DLC figures who really don't want you passing through.",
   },
   {
     id: "er_great_wyrm_theodorix",
@@ -1369,7 +1369,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A massive magma wyrm terrorizing the Consecrated Snowfield. Hot mess.",
   },
   {
     id: "er_great_horned_tragoth",
@@ -1377,7 +1377,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A bulky knight in the Volcano Manor. Built like a tank, fights like one too.",
   },
   {
     id: "er_jagged_peak_drake",
@@ -1385,7 +1385,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A drake guarding the Dragon's Pit exit. Not the welcoming party you hoped for.",
   },
   {
     id: "er_jagged_peak_drake_foot_of_the_jagged_peak",
@@ -1393,7 +1393,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Another jagged peak drake. They breed them tough up in the mountains.",
   },
   {
     id: "er_chief_bloodfiend",
@@ -1401,7 +1401,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC blood-crazed monstrosity. The chief of a very unpleasant tribe.",
   },
   {
     id: "er_hornsent",
@@ -1409,7 +1409,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC character with horns and a grudge against the Golden Order. Understandable.",
   },
   {
     id: "er_jori_elder_inquisitor",
@@ -1417,7 +1417,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC inquisitor boss who summons spirits. Judge, jury, and executioner.",
   },
   {
     id: "er_igon",
@@ -1425,7 +1425,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Dragon-obsessed warrior who REALLY hates Bayle. Will scream about it.",
   },
   {
     id: "er_inaba_disciple_of_okina",
@@ -1433,7 +1433,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A swift blade-dancer following Okina's bloody path. Like teacher, like student.",
   },
   {
     id: "er_count_ymir_mother_of_fingers",
@@ -1441,7 +1441,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC enigmatic figure obsessed with the Fingers. His title raises questions.",
   },
   {
     id: "er_inquisitor_ghiza",
@@ -1449,7 +1449,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Wields a pizza-cutter wheel weapon. The Volcano Manor's most creative torturer.",
   },
   {
     id: "er_magma_wyrm_caelid",
@@ -1457,7 +1457,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A serpentine dragon swimming through lava in Caelid. Floor is literally lava.",
   },
   {
     id: "er_magma_wyrm_mt._gelmir",
@@ -1465,7 +1465,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Magma wyrm guarding Mt. Gelmir. Picked the most on-brand location possible.",
   },
   {
     id: "er_juno_hoslow_knight_of_blood",
@@ -1473,7 +1473,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "An aristocratic duelist with impeccable manners and a very sharp whip.",
   },
   {
     id: "er_knight_diallos",
@@ -1481,7 +1481,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A wannabe hero who keeps failing upward. Trying his best, honestly.",
   },
   {
     id: "er_curseblade_labirith",
@@ -1489,7 +1489,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC boss who curses you mid-fight. Rude and effective.",
   },
   {
     id: "er_dancer_of_ranah",
@@ -1497,7 +1497,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC graceful warrior who dances with deadly precision. Lethal choreography.",
   },
   {
     id: "er_logur_the_beast_claw",
@@ -1505,7 +1505,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A feral warrior who fights with literal beast claws. Went full animal.",
   },
   {
     id: "er_beastmen",
@@ -1513,7 +1513,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Savage warriors from Farum Azula. Lots of fur, lots of anger.",
   },
   {
     id: "er_royal_knight_loretta",
@@ -1521,7 +1521,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A spectral knight guarding Caria Manor. Shoots magic arrows from horseback.",
   },
   {
     id: "er_madding_hand",
@@ -1529,7 +1529,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC creepy hand creature. Exactly as unsettling as it sounds.",
   },
   {
     id: "er_mad_tongue_alberich",
@@ -1537,7 +1537,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Invades you at the Roundtable Hold. Uses ice magic and zero manners.",
   },
   {
     id: "er_magnus_the_beast_claw",
@@ -1545,7 +1545,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Another beast claw warrior. These guys really committed to the aesthetic.",
   },
   {
     id: "er_maleigh_marais_shaded_castle_castellan",
@@ -1553,7 +1553,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Castellan of the Shaded Castle. His weapon moves on its own. Creepy.",
   },
   {
     id: "er_death_knight",
@@ -1561,7 +1561,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC armored warrior wielding the power of death itself. Metal as it gets.",
   },
   {
     id: "er_death_knight_rauh_base",
@@ -1569,7 +1569,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Another Death Knight deep in Rauh ruins. Death travels in pairs.",
   },
   {
     id: "er_merchant_kal_nomadic_merchants",
@@ -1577,7 +1577,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Wandering merchants who sell you stuff and play haunting music. Good vibes.",
   },
   {
     id: "er_milicent",
@@ -1585,7 +1585,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A one-armed warrior fighting Scarlet Rot. Basically Malenia's biggest fan.",
   },
   {
     id: "er_moongrum_carian_knight",
@@ -1593,7 +1593,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A Carian knight who guards the elevator to Rennala. Parry god.",
   },
   {
     id: "er_moonrithyll_carian_knight",
@@ -1601,7 +1601,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Spectral Carian knight on horseback. Moonlit and menacing.",
   },
   {
     id: "er_bloodfiends",
@@ -1609,7 +1609,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "DLC blood-crazed humanoids. Red is their favorite color by far.",
   },
   {
     id: "er_moore",
@@ -1617,7 +1617,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC NPC who serves as a humble guide. Just a nice guy in a horrible world.",
   },
   {
     id: "er_nameless_white_mask",
@@ -1625,7 +1625,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Three masked invaders near Mohg's palace. They come in a creepy trio.",
   },
   {
     id: "er_preceptor_miriam",
@@ -1633,7 +1633,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A sorcerer who teleports around a tower and snipes you. Incredibly annoying.",
   },
   {
     id: "er_recusant_henricus",
@@ -1641,7 +1641,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A Volcano Manor recusant with a giant hammer. Subtlety is not his thing.",
   },
   {
     id: "er_redmane_freyja",
@@ -1649,7 +1649,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC warrior loyal to Radahn's legacy. Fierce, honorable, and very tall.",
   },
   {
     id: "er_rileigh_the_idle",
@@ -1657,7 +1657,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A lazy bloody finger invader. Even his name says he doesn't try hard.",
   },
   {
     id: "er_sanguine_noble",
@@ -1665,7 +1665,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "An elegant blood sorcerer who invades near a church. Classy but deadly.",
   },
   {
     id: "er_shabriri",
@@ -1673,7 +1673,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "The face of the Three Fingers and lord of chaos. Those eyes are unsettling.",
   },
   {
     id: "er_sir_ansbach",
@@ -1681,7 +1681,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC knight with a mysterious past and unwavering loyalty. Old-school honor.",
   },
   {
     id: "er_swordhand_of_night_anna",
@@ -1689,7 +1689,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A ghostly dual-wielding swordswoman. Fights in the dark because drama.",
   },
   {
     id: "er_chanting_winged_dame",
@@ -1697,7 +1697,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Bat-women who sing eerie songs. The Lands Between's worst choir.",
   },
   {
     id: "er_swordhand_of_night_jol_n",
@@ -1705,7 +1705,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC spectral duelist with twin blades. Night shift warrior.",
   },
   {
     id: "er_esgar_priest_of_blood",
@@ -1713,7 +1713,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Blood priest lurking in the catacombs. Prays to Mohg, bothers everyone.",
   },
   {
     id: "er_tanith_s_knight",
@@ -1721,7 +1721,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Tanith's personal bodyguard at Volcano Manor. Very protective, very stabby.",
   },
   {
     id: "er_fallingstar_beast_caelid",
@@ -1729,7 +1729,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A cosmic beast that literally fell from the sky into Caelid. Bad landing.",
   },
   {
     id: "er_fallingstar_beast_altus_plateau",
@@ -1737,7 +1737,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Another star-beast, this one chose the Altus Plateau crater. Gravity is cruel.",
   },
   {
     id: "er_vargram_the_raging_wolf",
@@ -1745,7 +1745,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "DLC aggressive invader in wolf armor. Lives up to the name.",
   },
   {
     id: "er_fallingstar_beast_scaduview",
@@ -1753,7 +1753,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC star-beast in Scaduview. Even the Shadow Realm gets space debris.",
   },
   {
     id: "er_white_mask_varr",
@@ -1761,7 +1761,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "Blood-obsessed NPC who leads you to Mohg. Suspiciously friendly at first.",
   },
   {
     id: "er_frenzied_duelist",
@@ -1769,7 +1769,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A maddened arena fighter. Lost their mind but kept the combat skills.",
   },
   {
     id: "er_yura_hunter_of_bloody_fingers",
@@ -1777,7 +1777,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "",
+    description: "A samurai who hunts blood-crazed invaders. Coolest hat in the game.",
   },
   {
     id: "er_grave_warden_duelist",
@@ -1785,7 +1785,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A chained warrior guarding Limgrave's catacombs. Fights with two hammers.",
   },
   {
     id: "er_grave_warden_duelist_leyndell",
@@ -1793,7 +1793,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Grave warden posted in Leyndell. Got promoted to the capital.",
   },
   {
     id: "er_lamenter",
@@ -1801,7 +1801,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC grotesque creature born from suffering. As fun as it sounds.",
   },
   {
     id: "er_mad_pumpkin_head",
@@ -1809,7 +1809,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A warrior with a literal pumpkin on their head. Fashion Souls at its finest.",
   },
   {
     id: "er_miranda_the_blighted_bloom",
@@ -1817,7 +1817,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A giant poisonous flower. Nature's way of saying stay away.",
   },
   {
     id: "er_necromancer_garris",
@@ -1825,7 +1825,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Raises the dead and rides a snail. Peak necromancer lifestyle.",
   },
   {
     id: "er_onyx_lord",
@@ -1833,7 +1833,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "An alien lord who manipulates gravity. Came from space, stayed for the chaos.",
   },
   {
     id: "er_onyx_lord_leyndell",
@@ -1841,7 +1841,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Another gravity-wielding alien, this one in Leyndell. Interstellar immigrants.",
   },
   {
     id: "er_putrid_avatar",
@@ -1849,7 +1849,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A rot-infused Erdtree guardian in Dragonbarrow. The tree wants you dead.",
   },
   {
     id: "er_putrid_avatar_consecrated_snowfield",
@@ -1857,7 +1857,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "Putrid avatar in the snow. Rot doesn't care about the weather.",
   },
   {
     id: "er_putrid_grave_warden_duelist",
@@ -1865,7 +1865,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A rotting grave warden. Like the regular one but smellier.",
   },
   {
     id: "er_putrid_tree_spirit",
@@ -1873,7 +1873,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A massive rotting tree monster. Nature's worst nightmare come alive.",
   },
   {
     id: "er_rakshasa",
@@ -1881,7 +1881,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC lightning-fast warrior who dances through your attacks. Pure aggression.",
   },
   {
     id: "er_ralva_the_great_red_bear",
@@ -1889,7 +1889,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC massive red bear. Big, angry, and blocking your path.",
   },
   {
     id: "er_red_bear",
@@ -1897,7 +1897,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "DLC regular-sized red bear. Still very angry, still blocking your path.",
   },
   {
     id: "er_exile_soldiers",
@@ -1905,7 +1905,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Exiled warriors who wander the Lands Between. Homeless but hostile.",
   },
   {
     id: "er_red_wolf_of_the_champion",
@@ -1913,7 +1913,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "",
+    description: "A wolf wielding magic swords. Rennala's security system upgrade.",
   },
   {
     id: "er_golems",
@@ -1921,7 +1921,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Giant stone sentinels who shoot arrows the size of trees. Overqualified gatekeepers.",
   },
   {
     id: "er_horned_warrior",
@@ -1929,7 +1929,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "DLC fierce fighters with distinctive horns. Their culture was stolen from them.",
   },
   {
     id: "er_imps",
@@ -1937,7 +1937,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Tiny stone gremlins that guard catacombs. Annoying in packs, deadly near ledges.",
   },
   {
     id: "er_jar_innards",
@@ -1945,7 +1945,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "The disturbing inside of a living jar. You didn't want to know.",
   },
   {
     id: "er_knights_of_zamor",
@@ -1953,7 +1953,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Frost-wielding knights from a dead civilization. Cold in every sense.",
   },
   {
     id: "er_miners",
@@ -1961,7 +1961,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Underground workers who throw rocks at you. Just let them mine in peace.",
   },
   {
     id: "er_nox",
@@ -1969,7 +1969,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Mysterious warriors from the eternal cities. Elegant, deadly, and very underground.",
   },
   {
     id: "er_sheep",
@@ -1977,7 +1977,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Just sheep. They exist. Sometimes they explode. Welcome to the Lands Between.",
   },
   {
     id: "er_school_of_graven_mages",
@@ -1985,7 +1985,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "A horrifying ball of fused sorcerer heads. Study groups gone wrong.",
   },
   {
     id: "er_servants_of_rot",
@@ -1993,7 +1993,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Devotees of the Scarlet Rot. Their dedication is disgusting and impressive.",
   },
   {
     id: "er_shadow_undead",
@@ -2001,7 +2001,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "DLC spectral enemies that haunt the Shadow Realm. Spooky and persistent.",
   },
   {
     id: "er_skeletons",
@@ -2009,7 +2009,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Undead warriors that reassemble unless you hit them twice. Stubborn bones.",
   },
   {
     id: "er_spirit_jellyfish",
@@ -2025,7 +2025,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Massive giants forced to pull carriages. The Erdtree's overworked laborers.",
   },
   {
     id: "er_wandering_nobles",
@@ -2033,7 +2033,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "",
+    description: "Former aristocrats now shambling around. From riches to undead rags.",
   },
 
   // ── Base Game Spirit Ashes ──────────────────────────────────────────────────

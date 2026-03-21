@@ -41,11 +41,19 @@ export function CardStack() {
 
   // ----- Normal voting mode -----
   // With viewFilter, the frontier card may be past currentIndex (non-matching
-  // characters were skipped). Show cards starting from viewingIndex.
+  // characters were skipped). Collect the next 3 cards that match the active
+  // filter so preview cards behind the top card show the correct type.
   const frontierStart = state.viewingIndex >= state.currentIndex
     ? state.viewingIndex
     : state.currentIndex;
-  const visibleCards = state.deck.slice(frontierStart, frontierStart + 3);
+
+  const visibleCards: typeof state.deck = [];
+  const filter = state.viewFilter;
+  for (let i = frontierStart; i < state.deck.length && visibleCards.length < 3; i++) {
+    const c = state.deck[i];
+    if (filter && filter.length > 0 && !filter.includes(c.type)) continue;
+    visibleCards.push(c);
+  }
 
   if (!currentCharacter) return null;
 
