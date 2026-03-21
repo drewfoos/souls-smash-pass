@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 // ---------------------------------------------------------------------------
 // GET /api/admin/stats
@@ -13,6 +14,15 @@ export async function GET(request: Request) {
   const auth = await verifyAdmin(request);
   if (!auth.ok) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  // Rate limit admin requests to prevent accidental Firebase abuse
+  const limit = await rateLimit(`admin:stats:${auth.uid}`, { maxRequests: 10, windowMs: 60_000 });
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(limit.resetIn / 1000)) } }
+    );
   }
 
   try {
@@ -35,10 +45,18 @@ export async function GET(request: Request) {
       }
     }
 
-    // Count total users
-    const usersSnap = await db.ref("users").get();
-    const usersData = usersSnap.val();
-    const totalUsers = usersData ? Object.keys(usersData).length : 0;
+    // Count users via shallow read — only fetches keys, not the full user
+    // objects with all their vote histories. On a database with thousands of
+    // users this is orders of magnitude cheaper than a full .get().
+    let totalUsers = 0;
+    try {
+      const usersSnap = await db.ref("users").orderByKey().limitToFirst(10_000).get();
+      totalUsers = usersSnap.exists() ? Object.keys(usersSnap.val()).length : 0;
+    } catch {
+      // If the users read fails, return stats without user count rather than
+      // failing the entire request.
+      totalUsers = -1;
+    }
 
     return NextResponse.json({
       verified: true,

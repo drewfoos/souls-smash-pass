@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { useGame } from "@/context/GameContext";
 import {
   Menu,
   X,
@@ -26,12 +27,12 @@ import toast from "react-hot-toast";
 
 // Representative character image for each type
 const TYPE_IMAGES: Record<CharacterType, string> = {
-  boss: "/characters/er_malenia.jpg",
-  npc: "/characters/er_ranni.jpg",
-  mob: "/characters/er_soldier_of_godrick.jpg",
-  mc: "/characters/er_melina.jpg",
-  merchant: "/characters/er_melina.jpg",
-  summon: "/characters/er_spirit_jellyfish.jpg",
+  boss: "/characters/er_malenia.webp",
+  npc: "/characters/er_ranni.webp",
+  mob: "/characters/er_soldier_of_godrick.webp",
+  mc: "/characters/er_melina.webp",
+  merchant: "/characters/er_melina.webp",
+  summon: "/characters/er_spirit_jellyfish.webp",
 };
 
 interface MobileMenuProps {
@@ -49,6 +50,7 @@ export function MobileMenu({
 }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const { user, loading, signInWithGoogle, signOutUser } = useAuth();
+  const { flushPendingVotes } = useGame();
   const [signingIn, setSigningIn] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const availableTypes = getAvailableTypes();
@@ -94,6 +96,7 @@ export function MobileMenu({
 
   const handleSignOut = async () => {
     setOpen(false);
+    await flushPendingVotes();
     await signOutUser();
     toast("Signed out", { duration: 2000 });
   };
@@ -224,7 +227,7 @@ export function MobileMenu({
                 hover:bg-dark-700/40 ${!currentTypes ? "text-gold font-semibold" : "text-priscilla/60"}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/characters/er_malenia.jpg" alt="" className="w-6 h-6 rounded object-cover border border-gold/30" draggable={false} />
+              <img src="/characters/er_malenia.webp" alt="" className="w-6 h-6 rounded object-cover border border-gold/30" draggable={false} />
               All Characters
               {!currentTypes && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-gold" />}
             </button>

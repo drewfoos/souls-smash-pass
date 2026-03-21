@@ -10,12 +10,12 @@ import {
 
 // Representative character image for each type
 const TYPE_IMAGES: Record<CharacterType, string> = {
-  boss: "/characters/er_malenia.jpg",
-  npc: "/characters/er_ranni.jpg",
-  mob: "/characters/er_soldier_of_godrick.jpg",
-  mc: "/characters/er_melina.jpg",
-  merchant: "/characters/er_melina.jpg",
-  summon: "/characters/er_spirit_jellyfish.jpg",
+  boss: "/characters/er_malenia.webp",
+  npc: "/characters/er_ranni.webp",
+  mob: "/characters/er_soldier_of_godrick.webp",
+  mc: "/characters/er_melina.webp",
+  merchant: "/characters/er_melina.webp",
+  summon: "/characters/er_spirit_jellyfish.webp",
 };
 
 interface FilterDropdownProps {
@@ -49,7 +49,7 @@ export function FilterDropdown({ currentTypes, onApply }: FilterDropdownProps) {
 
   const currentImage = currentTypes?.length === 1
     ? TYPE_IMAGES[currentTypes[0]]
-    : "/characters/er_malenia.jpg"; // default for "All"
+    : "/characters/er_malenia.webp"; // default for "All"
 
   const handleSelect = (type: CharacterType | "all") => {
     setOpen(false);
@@ -115,7 +115,7 @@ export function FilterDropdown({ currentTypes, onApply }: FilterDropdownProps) {
             <div className="w-8 h-8 rounded-md overflow-hidden shrink-0 border-2 border-gold/40">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/characters/er_malenia.jpg"
+                src="/characters/er_malenia.webp"
                 alt=""
                 className="w-full h-full object-cover"
                 draggable={false}

@@ -15,17 +15,68 @@
     // bypasses these rules), so there's no need for a public .read rule.
     // This prevents internal fields (currentId, lastPlayed, lastReset) from
     // leaking when isPublic is true.
+    //
+    // Admin SDK writes (vote recording, position sync) bypass ALL rules below.
+    // The .validate rules only constrain direct client-side writes.
     "users": {
       "$uid": {
         ".read":  "auth !== null && auth.uid === $uid",
         ".write": "auth !== null && auth.uid === $uid",
 
-        // Field-level validation — prevents abuse even if client code is bypassed
+        // ── Field-level validation ──────────────────────────────────────────
+        // Prevents abuse even if client code is bypassed. Admin SDK is
+        // unaffected — it bypasses rules entirely.
+
         "displayName": {
           ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
         },
         "tagline": {
           ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 160)"
+        },
+        "photoURL": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500)"
+        },
+        "isPublic": {
+          ".validate": "!newData.exists() || newData.isBoolean()"
+        },
+        "currentId": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000)"
+        },
+        "lastPlayed": {
+          ".validate": "!newData.exists() || newData.isNumber()"
+        },
+        "lastReset": {
+          ".validate": "!newData.exists() || newData.isNumber()"
+        },
+        "runConfig": {
+          // Client only writes null (on reset). Admin writes the full object.
+          // Allow both: null passes via !newData.exists(), object passes via
+          // child validation. Seed is required for a valid run config.
+          "seed": {
+            ".validate": "newData.isNumber()"
+          },
+          "selectedGames": {
+            ".validate": true
+          },
+          "selectedTypes": {
+            ".validate": true
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "votes": {
+          "$charId": {
+            // Only "smash" or "pass" — prevents arbitrary data in vote entries.
+            // remove() on the parent still works (deleting doesn't trigger child validate).
+            ".validate": "newData.isString() && (newData.val() === 'smash' || newData.val() === 'pass')"
+          }
+        },
+
+        // Reject unknown fields — prevents clients from writing arbitrary data
+        // to the user node. Admin SDK bypasses this entirely.
+        "$other": {
+          ".validate": false
         }
       }
     },

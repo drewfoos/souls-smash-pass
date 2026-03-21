@@ -6,7 +6,7 @@ import { ref, update, get, remove, set } from "firebase/database";
 import { getFirebaseDatabase } from "./firebase";
 import type { User } from "firebase/auth";
 import { characterById } from "@/data/characters";
-import { sanitizeFirebaseKey, unsanitizeFirebaseKey } from "./firebase-key";
+import { unsanitizeFirebaseKey } from "./firebase-key";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -70,78 +70,8 @@ export async function saveUserProfile(user: User): Promise<void> {
   });
 }
 
-// ---------------------------------------------------------------------------
-// saveUserHistory
-//
-// Called after a game session ends (client-side, authenticated user only).
-// Merges the current session's votes into /users/{uid}/votes — later plays
-// overwrite earlier choices for the same character, so it always reflects
-// the user's most recent opinion.
-//
-// Optionally accepts `currentId` (= currentIndex) so the server always knows
-// how far the user has progressed — used for cross-device sync on sign-in.
-// ---------------------------------------------------------------------------
-
-export async function saveUserHistory(
-  user: User,
-  history: Array<{ character: { id: string }; action: VoteChoice }>,
-  currentId?: number,
-  runConfig?: RunConfig,
-): Promise<void> {
-  if (history.length === 0) return;
-
-  const db = getFirebaseDatabase();
-
-  // Build votes map for this session.
-  // Firebase path keys cannot contain . # $ [ ] so we sanitize character IDs.
-  const votesUpdate: Record<string, VoteChoice> = {};
-  for (const entry of history) {
-    votesUpdate[sanitizeFirebaseKey(entry.character.id)] = entry.action;
-  }
-
-  // Single atomic multi-path update: metadata + votes + runConfig in one write.
-  // Prevents partial state if one write succeeds and the other fails.
-  const atomicUpdate: Record<string, unknown> = {
-    displayName: user.displayName ?? "Tarnished",
-    photoURL: user.photoURL ?? null,
-    lastPlayed: Date.now(),
-  };
-  if (currentId !== undefined) {
-    atomicUpdate.currentId = currentId;
-  }
-  if (runConfig) {
-    atomicUpdate.runConfig = runConfig;
-  }
-  // Merge votes into the same update using path notation
-  for (const [key, action] of Object.entries(votesUpdate)) {
-    atomicUpdate[`votes/${key}`] = action;
-  }
-  await update(ref(db, `users/${user.uid}`), atomicUpdate);
-}
-
-// ---------------------------------------------------------------------------
-// saveUserPosition
-//
-// Called on every vote when the user is signed in — stores their current
-// position (deck index) and run config in Firebase so the exact deck can be
-// reconstructed on another device. Run config (seed + filters) only needs to
-// be written once per run, but including it on every save is cheap and avoids
-// a separate "run started" write.
-// Fire-and-forget: call with .catch(console.error).
-// ---------------------------------------------------------------------------
-
-export async function saveUserPosition(
-  user: User,
-  currentId: number,
-  runConfig?: RunConfig,
-): Promise<void> {
-  const db = getFirebaseDatabase();
-  const payload: Record<string, unknown> = { currentId };
-  if (runConfig) {
-    payload.runConfig = runConfig;
-  }
-  await update(ref(db, `users/${user.uid}`), payload);
-}
+// saveUserHistory and saveUserPosition were removed — votes and position are
+// now written exclusively through /api/vote (Admin SDK), not client-side.
 
 // ---------------------------------------------------------------------------
 // getUserData
@@ -154,6 +84,27 @@ export async function getUserData(uid: string): Promise<UserData | null> {
   const snap = await get(ref(db, `users/${uid}`));
   if (!snap.exists()) return null;
   return snap.val() as UserData;
+}
+
+/**
+ * Lightweight fetch that returns only metadata (currentId, runConfig) without
+ * downloading the entire votes object. Use for tab-focus checks where we only
+ * need to know IF Firebase is ahead, not the full vote history.
+ */
+export async function getUserMeta(uid: string): Promise<{
+  currentId: number;
+  runConfig?: RunConfig;
+} | null> {
+  const db = getFirebaseDatabase();
+  const [currentIdSnap, runConfigSnap] = await Promise.all([
+    get(ref(db, `users/${uid}/currentId`)),
+    get(ref(db, `users/${uid}/runConfig`)),
+  ]);
+  if (!currentIdSnap.exists()) return null;
+  return {
+    currentId: currentIdSnap.val() ?? 0,
+    runConfig: runConfigSnap.val() ?? undefined,
+  };
 }
 
 // ---------------------------------------------------------------------------

@@ -51,8 +51,8 @@
   --color-type-mob: #8b9dc3;
   --color-type-summon: #a78bfa;
 
-  --font-cinzel: "Cinzel", serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-cinzel: var(--font-cinzel-loaded, "Cinzel", serif);
+  --font-body: var(--font-body-loaded, "Inter", system-ui, sans-serif);
 }
 
 @layer base {

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useGame } from "@/context/GameContext";
 import { LogIn, LogOut, User, ChevronDown, Loader2, Settings, BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -14,6 +15,7 @@ interface SignInButtonProps {
 
 export function SignInButton({ onOpenProfile }: SignInButtonProps) {
   const { user, loading, signInWithGoogle, signOutUser } = useAuth();
+  const { flushPendingVotes } = useGame();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,6 +59,9 @@ export function SignInButton({ onOpenProfile }: SignInButtonProps) {
 
   const handleSignOut = async () => {
     setDropdownOpen(false);
+    // Flush buffered votes while the auth token is still valid.
+    // After signOut(), auth.currentUser is null and votes would be sent anonymously.
+    await flushPendingVotes();
     await signOutUser();
     toast("Signed out", { duration: 2000 });
   };

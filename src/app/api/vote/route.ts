@@ -13,8 +13,8 @@ import { getOrCreateAnonSession, attachSessionCookie } from "@/lib/anon-session"
 // ---------------------------------------------------------------------------
 // Batch size limits
 //
-// Client uses BATCH_SIZE=1 (one vote per HTTP request) for live feedback, so
-// these limits only matter for crafted requests — not normal gameplay.
+// Client uses BATCH_SIZE=5 with debounced flush, so these limits only matter
+// for crafted requests — not normal gameplay.
 //
 // Anon limit is meaningfully smaller to reduce abuse surface.
 // Auth limit covers a full playthrough in a single sync (e.g. cross-device
@@ -23,6 +23,9 @@ import { getOrCreateAnonSession, attachSessionCookie } from "@/lib/anon-session"
 
 const ANON_MAX_BATCH = 25;
 const AUTH_MAX_BATCH = 300;
+
+/** Absolute ceiling for currentIndex — no deck can be larger than this. */
+const MAX_CURRENT_INDEX = 1000;
 
 // Allowed vote actions — anything else is rejected
 const VALID_ACTIONS = new Set(["smash", "pass"]);
@@ -48,12 +51,24 @@ function buildAllowedOrigins(): Set<string> {
   origins.add("http://localhost");
   const appUrl = process.env.APP_URL?.replace(/\/$/, "");
   if (appUrl) origins.add(appUrl);
+  // Vercel sets VERCEL_URL on every deployment (preview + production).
+  // Include it so preview deployments can call the API without being 403'd.
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) origins.add(`https://${vercelUrl}`);
   return origins;
 }
 
 const ALLOWED_ORIGINS = buildAllowedOrigins();
 
 export async function POST(request: Request) {
+  // anonSession is hoisted so the catch block can still attach the cookie.
+  let anonSession: Awaited<ReturnType<typeof getOrCreateAnonSession>> | null = null;
+
+  function reply(response: NextResponse): NextResponse {
+    if (anonSession?.isNew) attachSessionCookie(response, anonSession);
+    return response;
+  }
+
   try {
     // ── 1. Origin check ──────────────────────────────────────────────────────
     // Rejects cross-origin requests from unrecognised domains.
@@ -96,22 +111,11 @@ export async function POST(request: Request) {
     // ── 4. Anonymous session ─────────────────────────────────────────────────
     // Read (or create) the httpOnly signed session cookie so the server can
     // track which characters this session has already voted on.
-    //
-    // reply() is a thin wrapper used for every NextResponse created from this
-    // point on. It attaches the Set-Cookie header when a new session was just
-    // created, ensuring the cookie is set regardless of which return path is
-    // taken — including early 4xx returns from validation below.
-    const anonSession = uid ? null : await getOrCreateAnonSession();
-
-    function reply(response: NextResponse): NextResponse {
-      if (anonSession?.isNew) attachSessionCookie(response, anonSession);
-      return response;
-    }
+    anonSession = uid ? null : await getOrCreateAnonSession();
 
     // ── 5. Rate limiting ─────────────────────────────────────────────────────
     // Authenticated: keyed by UID (most precise — not spoofable)
-    // Anonymous:     keyed by session (stable across IPs)
-    const ip = await getClientIp();
+    // Anonymous:     keyed by session + secondary IP check
     const rateLimitKey = uid
       ? `uid:${uid}`
       : `anon:${anonSession!.firebaseKey}`;
@@ -136,6 +140,7 @@ export async function POST(request: Request) {
     // IP-based secondary check for anonymous users — catches new sessions being
     // spam-created from a single IP to bypass per-session limits.
     if (!uid) {
+      const ip = await getClientIp();
       const ipLimit = await rateLimit(`ip:${ip}`, { maxRequests: 300, windowMs: 60_000 });
       if (!ipLimit.ok) {
         return reply(
@@ -229,28 +234,18 @@ export async function POST(request: Request) {
       // currentIndex and runConfig are advisory — the server doesn't validate
       // them beyond writing them. Malformed values are silently dropped.
       const safeCurrentIndex =
-        typeof currentIndex === "number" && Number.isFinite(currentIndex) && currentIndex >= 0
+        typeof currentIndex === "number" && Number.isFinite(currentIndex) && currentIndex >= 0 && currentIndex <= MAX_CURRENT_INDEX
           ? Math.floor(currentIndex)
           : undefined;
-      const safeRunConfig =
-        runConfig !== null && typeof runConfig === "object" && !Array.isArray(runConfig)
-          ? (runConfig as { seed?: unknown; selectedGames?: unknown; selectedTypes?: unknown })
-          : undefined;
+
+      // Validate runConfig shape and element types before writing to Firebase.
+      // An attacker sending { selectedGames: [1, null, {}] } would otherwise
+      // write garbage that crashes the client on restore.
+      const safeRunConfig = parseRunConfig(runConfig);
 
       recorded = await recordAuthenticatedVotes(uid, validatedVotes, {
         currentIndex: safeCurrentIndex,
-        runConfig:
-          safeRunConfig && typeof safeRunConfig.seed === "number"
-            ? {
-                seed: safeRunConfig.seed,
-                selectedGames: Array.isArray(safeRunConfig.selectedGames)
-                  ? (safeRunConfig.selectedGames as string[])
-                  : null,
-                selectedTypes: Array.isArray(safeRunConfig.selectedTypes)
-                  ? (safeRunConfig.selectedTypes as string[])
-                  : null,
-              }
-            : undefined,
+        runConfig: safeRunConfig,
       });
     } else {
       recorded = await recordAnonymousSessionVotes(
@@ -268,6 +263,46 @@ export async function POST(request: Request) {
     );
   } catch (err) {
     console.error("[/api/vote]", err);
-    return NextResponse.json({ error: "Failed to record votes" }, { status: 500 });
+    // Use reply() so the session cookie is still set on errors — otherwise
+    // the next request creates a new session instead of reusing this one.
+    return reply(
+      NextResponse.json({ error: "Failed to record votes" }, { status: 500 })
+    );
   }
+}
+
+// ---------------------------------------------------------------------------
+// runConfig validation
+//
+// Validates every field and element type. Returns a clean RunConfig or
+// undefined if the input is malformed.
+// ---------------------------------------------------------------------------
+
+function parseRunConfig(
+  raw: unknown
+): { seed: number; selectedGames: string[] | null; selectedTypes: string[] | null } | undefined {
+  if (raw === null || raw === undefined || typeof raw !== "object" || Array.isArray(raw)) {
+    return undefined;
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  // seed must be a finite number
+  if (typeof obj.seed !== "number" || !Number.isFinite(obj.seed)) {
+    return undefined;
+  }
+
+  return {
+    seed: obj.seed,
+    selectedGames: parseStringArray(obj.selectedGames),
+    selectedTypes: parseStringArray(obj.selectedTypes),
+  };
+}
+
+/** Returns a string[] if input is an array of strings, otherwise null. */
+function parseStringArray(val: unknown): string[] | null {
+  if (!Array.isArray(val)) return null;
+  // Reject if any element is not a string — don't silently filter
+  if (!val.every((v): v is string => typeof v === "string")) return null;
+  return val;
 }

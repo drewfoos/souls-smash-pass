@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -17,12 +18,10 @@ import { PublicProfileGrid } from "./PublicProfileGrid";
 /**
  * Fetches a user's PUBLIC profile using the Admin SDK.
  *
- * The Admin SDK bypasses Firebase security rules, so the /users/{uid} node
- * can be locked to owner-only while still allowing server-rendered public
- * profile pages. Only safe, display-relevant fields are returned — internal
- * fields like currentId, lastPlayed, and lastReset are stripped.
+ * Wrapped in React `cache()` so generateMetadata and the page component
+ * share a single Firebase read per request.
  */
-async function fetchPublicUser(uid: string): Promise<UserData | null> {
+const fetchPublicUser = cache(async function fetchPublicUser(uid: string): Promise<UserData | null> {
   try {
     const db = getAdminDb();
     const snap = await db.ref(`users/${uid}`).get();
@@ -43,7 +42,7 @@ async function fetchPublicUser(uid: string): Promise<UserData | null> {
   } catch {
     return null;
   }
-}
+});
 
 // ── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -63,6 +62,11 @@ export async function generateMetadata({
     title: `${name}'s Profile — Elden Smash`,
     description: `${name} has judged ${total} Elden Ring characters on Elden Smash or Pass.`,
     openGraph: {
+      title: `${name}'s Elden Smash Profile`,
+      description: `See which Elden Ring characters ${name} smashed and passed.`,
+    },
+    twitter: {
+      card: "summary",
       title: `${name}'s Elden Smash Profile`,
       description: `See which Elden Ring characters ${name} smashed and passed.`,
     },

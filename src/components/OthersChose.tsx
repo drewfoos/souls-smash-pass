@@ -10,7 +10,7 @@ interface OthersChoseProps {
 
 export function OthersChose({ character }: OthersChoseProps) {
   // Live subscription — updates the moment anyone anywhere votes
-  const votes = useCharacterVotes(character.id);
+  const { votes, loading } = useCharacterVotes(character.id);
 
   const total = votes.smash + votes.pass;
   const typeColors = CHARACTER_TYPE_COLORS[character.type];
@@ -28,19 +28,28 @@ export function OthersChose({ character }: OthersChoseProps) {
         {/* Passes */}
         <div className="flex flex-col items-end w-1/3">
           <span className="font-semibold text-lg text-pass">Passes</span>
-          <div
-            className="rounded transition-all duration-700 ml-auto"
-            style={{
-              height: "32px",
-              borderRadius: "4px",
-              backgroundColor: "rgba(255, 82, 119, 0.5)",
-              width: `${passPercent}%`,
-              minWidth: total > 0 ? "4px" : "0px",
-            }}
-          />
-          <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
-            {total > 0 ? votes.pass.toLocaleString() : "—"}
-          </span>
+          {loading ? (
+            <>
+              <div className="h-[32px] w-full rounded bg-pass/10 animate-pulse" />
+              <div className="h-[28px] w-10 rounded bg-dark-700/40 animate-pulse mt-0.5" />
+            </>
+          ) : (
+            <>
+              <div
+                className="rounded transition-all duration-700 ml-auto"
+                style={{
+                  height: "32px",
+                  borderRadius: "4px",
+                  backgroundColor: "rgba(255, 82, 119, 0.5)",
+                  width: `${passPercent}%`,
+                  minWidth: total > 0 ? "4px" : "0px",
+                }}
+              />
+              <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
+                {total > 0 ? votes.pass.toLocaleString() : "—"}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Thumbnail */}
@@ -59,19 +68,28 @@ export function OthersChose({ character }: OthersChoseProps) {
         {/* Smashes */}
         <div className="flex flex-col items-start w-1/3">
           <span className="font-semibold text-lg text-smash">Smashes</span>
-          <div
-            className="rounded transition-all duration-700"
-            style={{
-              height: "32px",
-              borderRadius: "4px",
-              backgroundColor: "rgba(46, 232, 154, 0.5)",
-              width: `${smashPercent}%`,
-              minWidth: total > 0 ? "4px" : "0px",
-            }}
-          />
-          <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
-            {total > 0 ? votes.smash.toLocaleString() : "—"}
-          </span>
+          {loading ? (
+            <>
+              <div className="h-[32px] w-full rounded bg-smash/10 animate-pulse" />
+              <div className="h-[28px] w-10 rounded bg-dark-700/40 animate-pulse mt-0.5" />
+            </>
+          ) : (
+            <>
+              <div
+                className="rounded transition-all duration-700"
+                style={{
+                  height: "32px",
+                  borderRadius: "4px",
+                  backgroundColor: "rgba(46, 232, 154, 0.5)",
+                  width: `${smashPercent}%`,
+                  minWidth: total > 0 ? "4px" : "0px",
+                }}
+              />
+              <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
+                {total > 0 ? votes.smash.toLocaleString() : "—"}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>

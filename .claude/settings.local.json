@@ -13,7 +13,13 @@
       "Bash(ls public/characters/*.webp)",
       "Bash(xargs du:*)",
       "Bash(bun -e \":*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(find /c/Users/drewf/Downloads/dev/souls-smash-or-pass/src -name favicon* -o -name *.ico -o -name apple-touch* -o -name site.webmanifest -o -name android-chrome*)",
+      "Bash(cat:*)",
+      "Bash(npx next:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(grep -r \"''use server''\" \"/c/Users/drewf/Downloads/dev/souls-smash-or-pass/src\" --include=\"*.ts\" --include=\"*.tsx\")"
     ]
   }
 }

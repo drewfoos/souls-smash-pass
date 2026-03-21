@@ -1,56 +1,170 @@
-# Smash or Pass — Soulsborne Edition
+# Elden Smash
 
-Rate 200+ characters from FromSoftware's legendary Soulsborne games. Swipe right to smash, left to pass.
+> Be honest. You've thought about it.
+>
+> Would you smash Ranni the Witch? What about Malenia, Blade of Miquella? The Dung Eater?
+>
+> **529 characters. No skipping. No mercy.**
 
-## Games Included
-- Elden Ring (+ DLC)
+![Next.js](https://img.shields.io/badge/Next.js_15-black?logo=next.js)
+![React](https://img.shields.io/badge/React_19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_v4-06B6D4?logo=tailwindcss&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-DD2C00?logo=firebase&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-black?logo=vercel)
 
-Includes bosses, NPCs, main characters, AND regular enemies (Silver Knights, Runebears, Winter Lanterns, etc.)
+---
+
+## What Is This
+
+Smash or pass every character in Elden Ring. Swipe through the full roster — from fan favorites like Ranni and Malenia to the Runebears and Revenants nobody asked about — and see how the rest of the world voted in real time.
+
+No account needed. Just start swiping.
+
+## The Roster
+
+**529 characters** pulled from Elden Ring and Shadow of the Erdtree:
+
+| Type | Count | You'll See... |
+|------|------:|---------------|
+| Creatures | 163 | Runebears, Revenants, Crucible Knights, Land Octopi |
+| Bosses | 157 | Malenia, Radahn, Messmer, Godrick, Mohg |
+| NPCs | 127 | Ranni, Alexander, Millicent, Blaidd, Patches |
+| Summons | 82 | Mimic Tear, Dung Eater, Jellyfish, Lhutel |
+
+Yes, the Grafted Scion is in here. Good luck.
+
+## Features
+
+**Gameplay**
+- Tinder-style swipe cards or keyboard controls to smash/pass
+- Filter by type — play just bosses, just NPCs, whatever — without losing progress
+- Browse your full voting history while keeping your place in the deck
+- Animated card stack with swipe gestures and directional visual feedback
+
+**Live Community Votes**
+- Real-time "Others chose" bar on every character — see if you're with the majority or unhinged
+- Global leaderboard of the most smashed and most passed characters
+- Shareable public profiles — show the world your taste (or lack of it)
+
+**Play Your Way**
+- No sign-in required — full anonymous voting with session cookies
+- Sign in with Google to sync votes across devices
+- Anonymous votes merge into your account when you sign in later
+
+## Controls
+
+| Input | Voting | Browsing History |
+|-------|--------|-----------------|
+| Swipe right / `->` | Smash | Next character |
+| Swipe left / `<-` | Pass | Previous character |
+| `Up` | Jump forward | Jump forward |
+| `Down` | Jump back | Jump back |
+| Tap buttons | Smash / Pass | — |
 
 ## Getting Started
 
+### Prerequisites
+
+- [Bun](https://bun.sh) (package manager & runtime)
+- A Firebase project with Realtime Database + Authentication (Google provider)
+
+### Setup
+
 ```bash
-# Install dependencies (using bun)
 bun install
+cp .env.example .env.local   # Fill in your Firebase keys
+bun dev                       # Starts on localhost:3000
+```
 
-# (Optional) Download character images from wiki sources
-bun run download-images
+### Environment Variables
 
-# Start dev server
-bun dev
+See [`.env.example`](.env.example) for the full list. The key ones:
 
-# Build for production
-bun run build
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_FIREBASE_*` | Firebase client SDK config (public) |
+| `FIREBASE_ADMIN_*` | Firebase Admin SDK credentials (secret) |
+| `APP_URL` | Production origin for CORS validation |
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEO (sitemap, OG images) |
+| `ANON_SESSION_SECRET` | Signs anonymous voting session cookies |
+| `ADMIN_EMAIL` | Email with access to the `/admin` dashboard |
+
+### Scripts
+
+```bash
+bun dev                  # Dev server with Turbopack
+bun run build            # Production build
+bun run lint             # ESLint
+bun test                 # Run tests
+bun run download-images  # Scrape character art from wiki sources
+bun run optimize-images  # Convert images to optimized WebP
+bun run reset-user       # Reset a user's voting history
 ```
 
 ## Character Images
 
-The game works out of the box with stylized fallback cards (unique gradient + rune patterns for each character). To add actual character art:
+Works without any images — each character gets a unique stylized fallback card with gradient + rune patterns.
 
-**Automatic:** Run `bun run download-images` to scrape images from Fextralife and Fandom wikis. Not all images will be found — missing ones keep the stylized cards.
+To add real artwork:
 
-**Manual:** Drop images into `public/characters/` named `{character_id}.jpg` (e.g., `ds1_solaire.jpg`). Character IDs are in `src/data/characters.ts`.
+- **Automatic:** `bun run download-images` scrapes Fextralife and Fandom wikis, then `bun run optimize-images` converts to WebP.
+- **Manual:** Drop images into `public/characters/` as `{character_id}.webp`. IDs are in [`src/data/characters.ts`](src/data/characters.ts).
 
-The image priority is: local file → remote URL → stylized fallback card.
+## Deploy
 
-## Deploy to Vercel
+```bash
+vercel deploy --prod
+```
 
-1. Push to GitHub
-2. Import repo on [vercel.com](https://vercel.com)
-3. Vercel auto-detects Next.js + bun from `vercel.json`
-4. Deploy!
-
-For the global leaderboard to persist across deploys, set up Vercel KV:
-- Go to your Vercel project → Storage → Create KV Database
-- Replace `src/lib/store.ts` with a Vercel KV implementation
+Vercel auto-detects Next.js + Bun. Set the environment variables in your Vercel project settings before deploying.
 
 ## Tech Stack
-- Next.js 15 (App Router)
-- Framer Motion (swipe gestures)
-- Tailwind CSS v4 (dark gothic theme)
-- TypeScript
 
-## Controls
-- **Swipe right** or **→ arrow** = Smash
-- **Swipe left** or **← arrow** = Pass
-- **Buttons** = Fallback for Smash/Pass
+- **Framework** — Next.js 15 (App Router, React 19)
+- **Animations** — Framer Motion (swipe gestures, card transitions)
+- **Styling** — Tailwind CSS v4 (custom dark gothic theme)
+- **Database** — Firebase Realtime Database
+- **Auth** — Firebase Authentication (Google)
+- **Icons** — Lucide React
+- **Images** — Sharp (optimization pipeline)
+- **Deployment** — Vercel
+
+## Project Structure
+
+```
+src/
+├── app/                   # Next.js App Router pages & API routes
+│   ├── api/vote/          # Vote recording endpoint
+│   ├── api/leaderboard/   # Global leaderboard endpoint
+│   ├── api/admin/         # Admin dashboard endpoints
+│   ├── users/[uid]/       # Public profile pages (SSR)
+│   ├── admin/             # Admin dashboard
+│   ├── privacy/           # Privacy policy
+│   └── terms/             # Terms of service
+├── components/            # React components
+│   ├── CardStack.tsx      # Animated 3-card swipe stack
+│   ├── SwipeCard.tsx      # Individual draggable card
+│   ├── GameScreen.tsx     # Main gameplay layout
+│   ├── Leaderboard.tsx    # Real-time leaderboard modal
+│   ├── UserProfile.tsx    # Profile & settings modal
+│   └── FilterDropdown.tsx # Character type filter
+├── context/
+│   ├── GameContext.tsx     # Game state, voting, navigation, filters
+│   └── AuthContext.tsx     # Firebase auth + anonymous session
+├── data/
+│   └── characters.ts      # 529 character definitions
+└── lib/                   # Firebase clients, rate limiting, utilities
+scripts/
+├── download-images.ts     # Wiki image scraper
+├── optimize-images.ts     # JPG → WebP converter
+└── reset-user.ts          # Firebase user reset tool
+```
+
+## License
+
+MIT
+
+---
+
+Built by [@drewfoos](https://github.com/drewfoos)

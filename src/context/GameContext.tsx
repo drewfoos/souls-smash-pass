@@ -26,6 +26,7 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import {
   saveUserProfile,
   getUserData,
+  getUserMeta,
   type VoteChoice,
   type RunConfig,
 } from "@/lib/firebase-user";
@@ -55,6 +56,12 @@ interface GameState {
   selectedTypes: CharacterType[] | null;
   /** The seed used to shuffle the deck. Stored so Firebase restore can rebuild the exact order. */
   seed: number;
+  /**
+   * Live view filter — a non-destructive lens on the deck.
+   * When set, swipe/navigation skip characters whose type doesn't match.
+   * null = show all characters in the deck.
+   */
+  viewFilter: CharacterType[] | null;
 }
 
 type GameAction =
@@ -63,6 +70,7 @@ type GameAction =
   | { type: "END_GAME" }
   | { type: "NAVIGATE"; payload: { index: number } }
   | { type: "RESTORE"; payload: GameState }
+  | { type: "SET_VIEW_FILTER"; payload: { types: CharacterType[] | null } }
   | { type: "RESET" };
 
 // ---------------------------------------------------------------------------
@@ -89,6 +97,7 @@ interface SavedProgress {
   selectedGames: Game[] | null;
   selectedTypes: CharacterType[] | null;
   seed?: number;
+  viewFilter?: CharacterType[] | null;
 }
 
 function saveProgress(s: GameState, key: string): void {
@@ -103,6 +112,7 @@ function saveProgress(s: GameState, key: string): void {
       selectedGames: s.selectedGames,
       selectedTypes: s.selectedTypes,
       seed: s.seed,
+      viewFilter: s.viewFilter,
     };
     localStorage.setItem(key, JSON.stringify(progress));
   } catch {
@@ -146,7 +156,9 @@ function loadProgress(key: string): GameState | null {
       .filter((h): h is HistoryEntry => h !== null);
 
     const currentIndex = Math.min(saved.currentIndex, deck.length);
-    const viewingIndex = Math.min(saved.viewingIndex ?? currentIndex, currentIndex);
+    // Don't clamp to currentIndex — with filter-based voting, viewingIndex
+    // can legitimately be beyond currentIndex (filter skipped non-matching chars).
+    const viewingIndex = Math.min(saved.viewingIndex ?? currentIndex, deck.length);
 
     return {
       deck,
@@ -158,6 +170,7 @@ function loadProgress(key: string): GameState | null {
       selectedGames: saved.selectedGames ?? null,
       selectedTypes: saved.selectedTypes ?? null,
       seed: saved.seed ?? 0,
+      viewFilter: saved.viewFilter ?? null,
     };
   } catch {
     return null;
@@ -166,7 +179,10 @@ function loadProgress(key: string): GameState | null {
 
 /**
  * Loads the best available local progress by checking all three LS keys and
- * returning whichever has the highest currentIndex (most progress).
+ * returning whichever has the most votes cast (history.length). Using history
+ * length instead of currentIndex avoids the pitfall where a small deck with a
+ * high index (e.g. 15/20) would lose to a large deck with a slightly higher
+ * index (e.g. 16/100) despite having more meaningful progress.
  */
 function loadBestProgress(): { state: GameState | null; key: string } {
   const candidates = [
@@ -178,7 +194,7 @@ function loadBestProgress(): { state: GameState | null; key: string } {
   if (candidates.length === 0) return { state: null, key: LS_OFFLINE_KEY };
 
   return candidates.reduce((best, c) =>
-    c.state.currentIndex > best.state.currentIndex ? c : best
+    c.state.history.length > best.state.history.length ? c : best
   );
 }
 
@@ -196,7 +212,22 @@ const initialState: GameState = {
   selectedGames: null,
   selectedTypes: null,
   seed: 0,
+  viewFilter: null,
 };
+
+// ---------------------------------------------------------------------------
+// Helpers — find the next/previous deck index matching a view filter
+// ---------------------------------------------------------------------------
+
+/** Find the next index >= `from` where deck[i].type matches the filter. Returns deck.length if none. */
+function nextFilteredIndex(deck: Character[], from: number, filter: CharacterType[] | null): number {
+  if (!filter || filter.length === 0) return from;
+  for (let i = from; i < deck.length; i++) {
+    if (filter.includes(deck[i].type)) return i;
+  }
+  return deck.length; // nothing matches after `from`
+}
+
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -221,20 +252,48 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         selectedGames: games,
         selectedTypes: types,
         seed,
+        viewFilter: null, // reset view filter on new game
       };
     }
 
     case "SWIPE": {
-      if (state.currentIndex >= state.deck.length) return state;
-      const character = state.deck[state.currentIndex];
-      const entry: HistoryEntry = { character, action: action.payload.action };
-      const newIndex = state.currentIndex + 1;
-      const complete = newIndex >= state.deck.length;
+      // The character being voted on is at viewingIndex. Without a filter this
+      // equals currentIndex. With a viewFilter it may be ahead (skipped non-
+      // matching characters) — those skipped characters stay unvoted.
+      const votedIdx = state.viewingIndex;
+      if (votedIdx >= state.deck.length) return state;
+      const character = state.deck[votedIdx];
+      const newHistory = [...state.history, { character, action: action.payload.action }];
+
+      // Build a set of voted character IDs (including the one just voted on)
+      const votedIds = new Set(newHistory.map((h) => h.character.id));
+
+      // Advance currentIndex past any already-voted characters. This handles
+      // both the normal case (voted on currentIndex, bump by 1) and the filter
+      // case (voted ahead, but currentIndex might now point at a char that was
+      // voted on in a previous filter pass).
+      let newCurrentIndex = state.currentIndex;
+      while (newCurrentIndex < state.deck.length && votedIds.has(state.deck[newCurrentIndex].id)) {
+        newCurrentIndex++;
+      }
+
+      const complete = newCurrentIndex >= state.deck.length;
+
+      // After voting, jump viewingIndex to the next unvoted character matching
+      // the view filter.
+      let nextView = votedIdx + 1;
+      while (nextView < state.deck.length) {
+        const c = state.deck[nextView];
+        const matchesFilter = !state.viewFilter || state.viewFilter.length === 0 || state.viewFilter.includes(c.type);
+        if (matchesFilter && !votedIds.has(c.id)) break;
+        nextView++;
+      }
+
       return {
         ...state,
-        currentIndex: newIndex,
-        viewingIndex: newIndex, // keep viewing at the frontier after voting
-        history: [...state.history, entry],
+        currentIndex: newCurrentIndex,
+        viewingIndex: Math.min(nextView, state.deck.length),
+        history: newHistory,
         gameComplete: complete,
         gameActive: !complete,
       };
@@ -250,9 +309,63 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case "NAVIGATE": {
       const { index } = action.payload;
-      // Only allow navigating within [0, currentIndex]
-      if (index < 0 || index > state.currentIndex) return state;
+      if (index < 0 || index >= state.deck.length) return state;
+      // Allow navigating to any position that is either:
+      // 1. Already voted (history browsing)
+      // 2. The next unvoted character in the filtered view (frontier)
+      // The navigation functions enforce these constraints before dispatching.
       return { ...state, viewingIndex: index };
+    }
+
+    case "SET_VIEW_FILTER": {
+      const newFilter = action.payload.types;
+      const votedIds = new Set(state.history.map((h) => h.character.id));
+
+      // Find the next unvoted character matching the new filter, scanning
+      // from the start of unvoted territory (currentIndex) forward, then
+      // also before currentIndex (out-of-order voting can leave gaps).
+      let targetView = -1;
+      for (let i = state.currentIndex; i < state.deck.length; i++) {
+        const c = state.deck[i];
+        const matchesFilter = !newFilter || newFilter.length === 0 || newFilter.includes(c.type);
+        if (matchesFilter && !votedIds.has(c.id)) {
+          targetView = i;
+          break;
+        }
+      }
+      if (targetView === -1) {
+        // Scan before currentIndex for unvoted matching characters (gaps
+        // left by out-of-order filter voting).
+        for (let i = 0; i < state.currentIndex; i++) {
+          const c = state.deck[i];
+          const matchesFilter = !newFilter || newFilter.length === 0 || newFilter.includes(c.type);
+          if (matchesFilter && !votedIds.has(c.id)) {
+            targetView = i;
+            break;
+          }
+        }
+      }
+      if (targetView === -1) {
+        // All matching characters voted. Find the last voted matching
+        // character so the UI shows something relevant rather than parking
+        // on a non-matching character at currentIndex.
+        for (let i = state.deck.length - 1; i >= 0; i--) {
+          const c = state.deck[i];
+          const matchesFilter = !newFilter || newFilter.length === 0 || newFilter.includes(c.type);
+          if (matchesFilter && votedIds.has(c.id)) {
+            targetView = i;
+            break;
+          }
+        }
+        // Absolute fallback — park at currentIndex (deck end or unfiltered)
+        if (targetView === -1) targetView = state.currentIndex;
+      }
+
+      return {
+        ...state,
+        viewFilter: newFilter,
+        viewingIndex: targetView,
+      };
     }
 
     case "RESTORE": {
@@ -281,6 +394,8 @@ interface GameContextValue {
   currentCharacter: Character | null;
   nextCharacter: Character | null;
   progress: { current: number; total: number; percent: number };
+  /** Progress within the active viewFilter (same as progress when no filter). */
+  filteredProgress: { current: number; total: number; percent: number; viewing: number };
   stats: {
     smashed: number;
     passed: number;
@@ -300,11 +415,15 @@ interface GameContextValue {
    */
   hasRestored: boolean;
   startGame: (games?: Game[], types?: CharacterType[], options?: { replay?: boolean }) => void;
+  /** Change the live view filter without rebuilding the deck. */
+  setViewFilter: (types?: CharacterType[]) => void;
   swipe: (action: SwipeAction) => void;
   endGame: () => void;
   reset: () => void;
   navigateBack: () => void;
   navigateForward: () => void;
+  /** Flush any buffered votes. Call BEFORE signOut so votes are sent with auth. */
+  flushPendingVotes: () => Promise<void>;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -374,22 +493,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // ── Memoized derived values ─────────────────────────────────────────────
   // These only recompute when their deps change, not on every render.
 
-  const isAtFrontier = state.viewingIndex === state.currentIndex;
+  // The user is "at the frontier" (can vote) when viewing an unvoted character.
+  // With viewFilter, the frontier may be past currentIndex (filter skipped ahead).
+  const isAtFrontier = useMemo(() => {
+    if (state.viewingIndex < state.currentIndex) return false; // browsing history
+    // Check the character at viewingIndex hasn't already been voted on
+    const viewChar = state.deck[state.viewingIndex];
+    if (!viewChar) return false;
+    return !state.history.some((h) => h.character.id === viewChar.id);
+  }, [state.viewingIndex, state.currentIndex, state.deck, state.history]);
 
   const currentCharacter = useMemo(
     () =>
-      state.gameActive && state.currentIndex < state.deck.length
-        ? state.deck[state.currentIndex]
+      (state.gameActive || state.gameComplete) && state.viewingIndex < state.deck.length
+        ? state.deck[state.viewingIndex]
         : null,
-    [state.gameActive, state.currentIndex, state.deck]
+    [state.gameActive, state.gameComplete, state.viewingIndex, state.deck]
   );
 
   const nextCharacter = useMemo(
-    () =>
-      state.gameActive && state.currentIndex + 1 < state.deck.length
-        ? state.deck[state.currentIndex + 1]
-        : null,
-    [state.gameActive, state.currentIndex, state.deck]
+    () => {
+      if (!state.gameActive) return null;
+      const voted = new Set(state.history.map((h) => h.character.id));
+      const filter = state.viewFilter;
+      for (let i = state.viewingIndex + 1; i < state.deck.length; i++) {
+        const c = state.deck[i];
+        if (filter && filter.length > 0 && !filter.includes(c.type)) continue;
+        if (!voted.has(c.id)) return c;
+      }
+      return null;
+    },
+    [state.gameActive, state.viewingIndex, state.deck, state.viewFilter, state.history]
   );
 
   const progress = useMemo(
@@ -400,9 +534,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
         state.deck.length > 0
           ? Math.round((state.currentIndex / state.deck.length) * 100)
           : 0,
+      // 1-indexed position within the deck for display
+      viewing: state.viewingIndex + 1,
     }),
-    [state.currentIndex, state.deck.length]
+    [state.currentIndex, state.viewingIndex, state.deck.length]
   );
+
+  // Filtered progress — counts only characters matching the viewFilter.
+  // `viewing` is the 1-indexed ordinal of viewingIndex within the filtered subset.
+  const filteredProgress = useMemo(() => {
+    const vf = state.viewFilter;
+    if (!vf || vf.length === 0) return progress;
+    let filteredTotal = 0;
+    let filteredVoted = 0;
+    let viewingOrdinal = 0;
+    const voted = new Set(state.history.map((h) => h.character.id));
+    for (let i = 0; i < state.deck.length; i++) {
+      const c = state.deck[i];
+      if (vf.includes(c.type)) {
+        filteredTotal++;
+        if (voted.has(c.id)) filteredVoted++;
+        if (i <= state.viewingIndex) viewingOrdinal = filteredTotal;
+      }
+    }
+    return {
+      current: filteredVoted,
+      total: filteredTotal,
+      percent: filteredTotal > 0 ? Math.round((filteredVoted / filteredTotal) * 100) : 0,
+      viewing: viewingOrdinal,
+    };
+  }, [state.deck, state.viewingIndex, state.history, state.viewFilter, progress]);
 
   // Single-pass stats — replaces four separate filter/map passes.
   const stats = useMemo(() => {
@@ -431,7 +592,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const key = user ? LS_SCORE_KEY : LS_OFFLINE_KEY;
     saveProgress(state, key);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.deck, state.currentIndex, state.history, state.selectedGames, state.selectedTypes, state.seed, user]);
+  }, [state.deck, state.currentIndex, state.history, state.selectedGames, state.selectedTypes, state.seed, state.viewFilter, user]);
 
   // ── Sign-out migration: score → offlineScore ─────────────────────────────
   // When the user logs out, carry their signed-in progress forward to the
@@ -442,6 +603,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const isSignedIn = Boolean(user);
 
     if (wasSignedIn && !isSignedIn) {
+      // Safety-net flush — by this point auth.currentUser is already null, so
+      // these votes will be sent anonymously. The primary flush happens in
+      // handleSignOut (via flushPendingVotes) BEFORE signOut() is called.
+      // This fallback catches edge cases where signOut is triggered externally.
+      if (flushTimer.current) {
+        clearTimeout(flushTimer.current);
+        flushTimer.current = null;
+      }
+      const pendingBatch = voteQueue.current.flush();
+      if (pendingBatch) sendBatch(pendingBatch);
+
       // Just signed out — migrate LS_SCORE_KEY → LS_OFFLINE_KEY
       try {
         const scoreData = localStorage.getItem(LS_SCORE_KEY);
@@ -500,8 +672,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
       let selectedTypes: CharacterType[] | null;
       let seed: number;
 
-      if (currentState.deck.length > 0) {
-        // Local deck exists — use it (same session, same run)
+      // Use the local deck only if it matches Firebase's run (same seed).
+      // If the seeds differ, the local deck is from a different run (e.g.
+      // user started playing anonymously on a new device) and the Firebase
+      // pointer would index into the wrong deck order — skipping characters.
+      const localMatchesFirebase =
+        currentState.deck.length > 0 &&
+        (!fbRunConfig || fbRunConfig.seed === undefined || currentState.seed === fbRunConfig.seed);
+
+      if (localMatchesFirebase) {
+        // Local deck exists and matches Firebase's run — use it
         deck = currentState.deck;
         selectedGames = currentState.selectedGames;
         selectedTypes = currentState.selectedTypes;
@@ -528,10 +708,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const newHistory: HistoryEntry[] = [];
       const newCurrentIndex = Math.min(fbCurrentId, deck.length);
 
+      // Rebuild history from positions 0..currentIndex (the contiguous frontier)
       for (let i = 0; i < newCurrentIndex; i++) {
         const char = deck[i];
         const vote = fbVotes[char.id];
         if (vote) newHistory.push({ character: char, action: vote });
+      }
+      // Also pick up out-of-order votes beyond currentIndex (cast via view
+      // filters that skipped non-matching characters). Without this, those
+      // votes are silently dropped from the restored history.
+      const restoredIds = new Set(newHistory.map((h) => h.character.id));
+      for (let i = newCurrentIndex; i < deck.length; i++) {
+        const char = deck[i];
+        const vote = fbVotes[char.id];
+        if (vote && !restoredIds.has(char.id)) {
+          newHistory.push({ character: char, action: vote });
+        }
       }
 
       voteQueue.current.setFrontier(newCurrentIndex);
@@ -547,6 +739,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           selectedGames,
           selectedTypes,
           seed,
+          viewFilter: null, // clear view filter on cross-device restore
         },
       });
     },
@@ -603,7 +796,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
         // avatar stay current without being part of the vote write path.
         saveUserProfile(user).catch(console.error);
 
-        if (unsyncedAnon.length > 0) {
+        // Anon votes are merged into the local-ahead sync batch below (if
+        // applicable), so we only need to send them separately when Firebase
+        // is further ahead — in that case restoreFromFirebase replaces local
+        // state and the local-ahead branch never runs.
+        const sendAnonSeparately = unsyncedAnon.length > 0 && fbCurrentId > localCurrentIndex;
+        if (sendAnonSeparately) {
           getIdToken(user)
             .then((token) =>
               fetch("/api/vote", {
@@ -614,7 +812,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 },
                 body: JSON.stringify({
                   votes: unsyncedAnon.map(([characterId, action]) => ({ characterId, action })),
-                  // No currentIndex/runConfig — anon votes don't carry position metadata.
                 }),
               })
             )
@@ -698,21 +895,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!user) return;
 
     const handleFocus = () => {
-      getUserData(user.uid)
-        .then((data) => {
-          if (!data) return;
+      // First do a lightweight metadata check (2 small reads) instead of
+      // downloading the entire user node including all votes (~200+ entries).
+      // Only fetch full data when Firebase is actually ahead of this tab.
+      getUserMeta(user.uid)
+        .then((meta) => {
+          if (!meta) return;
 
-          const fbVotes = (data.votes ?? {}) as Record<string, VoteChoice>;
-          const fbCurrentId = data.currentId ?? 0;
           const localCurrentIndex = stateRef.current.currentIndex;
 
-          // Update the trusted previous-votes cache regardless
-          syncPreviousVotes(fbVotes);
-
-          // If Firebase is ahead of this tab, reconcile
-          if (fbCurrentId > localCurrentIndex) {
-            restoreFromFirebase(fbVotes, fbCurrentId, data.runConfig);
+          if (meta.currentId > localCurrentIndex) {
+            // Firebase is ahead — need the full vote map to restore
+            return getUserData(user.uid).then((data) => {
+              if (!data) return;
+              const fbVotes = (data.votes ?? {}) as Record<string, VoteChoice>;
+              syncPreviousVotes(fbVotes);
+              restoreFromFirebase(fbVotes, data.currentId ?? 0, data.runConfig);
+            });
           }
+          // Firebase is not ahead — no full fetch needed
         })
         .catch(() => {
           // Silently fail — stale state is better than broken state
@@ -739,7 +940,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sendBatch = useCallback((batch: PendingBatch): Promise<void> => {
-    const { votes, runConfig, currentIndex } = batch;
+    // Use the reducer's currentIndex (via stateRef) instead of the queue's
+    // internal frontier counter, which only increments by 1 per vote and
+    // diverges when filter-based voting causes currentIndex to jump.
+    const votes = batch.votes;
+    const runConfig = batch.runConfig;
+    const currentIndex = stateRef.current.currentIndex;
 
     const reqHeaders: Record<string, string> = { "Content-Type": "application/json" };
     const controller = new AbortController();
@@ -875,53 +1081,108 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "START_GAME", payload: { games, types, seed: getWeeklySeed(), pool } });
   }, []);
 
+  const setViewFilter = useCallback((types?: CharacterType[]) => {
+    const newFilter = types && types.length > 0 ? types : null;
+    dispatch({ type: "SET_VIEW_FILTER", payload: { types: newFilter } });
+  }, []);
+
   // Swipe lock — prevents double-trigger from rapid taps before React rerenders.
   const swipeLock = useRef(false);
 
   const swipe = useCallback(
     (action: SwipeAction) => {
-      if (state.gameComplete) return;
+      // Read from stateRef so back-to-back calls (before React re-renders)
+      // always see the latest dispatched state, not a stale closure snapshot.
+      const s = stateRef.current;
+      if (s.gameComplete) return;
       if (swipeLock.current) return;
       swipeLock.current = true;
       // Release after a microtask — by then React will have processed the dispatch
       // and updated currentIndex, so a second call would see the new state.
       queueMicrotask(() => { swipeLock.current = false; });
 
-      const char = state.deck[state.currentIndex];
+      // The displayed card is at viewingIndex (may differ from currentIndex
+      // when viewFilter skips non-matching characters).
+      const char = s.deck[s.viewingIndex];
       if (char) {
         queueVote(char.id, action);
         anonVotedIds.current.set(char.id, action);
       }
       dispatch({ type: "SWIPE", payload: { action } });
-      // Position is now written by the server atomically with each vote batch
-      // (currentIndex is included in the /api/vote payload). No separate client
-      // write needed here.
     },
-    [state.deck, state.currentIndex, queueVote]
+    [queueVote]
+  );
+
+  // Build a set of voted IDs and a lookup for navigation.
+  // useMemo ensures we don't rebuild on every render.
+  const votedIdSet = useMemo(
+    () => new Set(state.history.map((h) => h.character.id)),
+    [state.history]
   );
 
   const navigateBack = useCallback(() => {
-    if (state.viewingIndex > 0) {
-      dispatch({ type: "NAVIGATE", payload: { index: state.viewingIndex - 1 } });
+    if (state.viewingIndex <= 0) return;
+    // Find the previous voted character. When a viewFilter is active, prefer
+    // characters matching the filter, but always allow reaching any voted
+    // character so the user can review their full history.
+    const hasFilter = state.viewFilter && state.viewFilter.length > 0;
+    let fallback = -1;
+    for (let i = state.viewingIndex - 1; i >= 0; i--) {
+      const c = state.deck[i];
+      if (!votedIdSet.has(c.id)) continue;
+      if (!hasFilter || state.viewFilter!.includes(c.type)) {
+        dispatch({ type: "NAVIGATE", payload: { index: i } });
+        return;
+      }
+      // Track first voted char that doesn't match filter as fallback
+      if (fallback === -1) fallback = i;
     }
-  }, [state.viewingIndex]);
+    // If nothing matched the filter, fall back to any voted character
+    if (fallback !== -1) {
+      dispatch({ type: "NAVIGATE", payload: { index: fallback } });
+    }
+  }, [state.viewingIndex, state.deck, state.viewFilter, votedIdSet]);
 
   const navigateForward = useCallback(() => {
-    if (state.viewingIndex < state.currentIndex) {
-      // Still has history ahead — navigate into it
-      dispatch({ type: "NAVIGATE", payload: { index: state.viewingIndex + 1 } });
-    } else if (!state.gameComplete) {
-      // At the frontier: user hasn't voted on the next card
-      const char = state.deck[state.viewingIndex];
-      if (char) {
-        toast(`You haven't Smashed or Passed ${char.name} yet!`, {
-          id: "navigate-forward-blocked",
-          icon: "⚔️",
-          duration: 2500,
-        });
+    // At the frontier — can't skip ahead without voting
+    if (isAtFrontier) {
+      if (!state.gameComplete) {
+        const char = state.deck[state.viewingIndex];
+        if (char) {
+          toast(`You haven't Smashed or Passed ${char.name} yet!`, {
+            id: "navigate-forward-blocked",
+            icon: "⚔️",
+            duration: 2500,
+          });
+        }
+      }
+      return;
+    }
+
+    // Browsing history — find the next voted character matching the filter,
+    // or the frontier (first unvoted matching character). Skip unvoted gaps
+    // between voted characters to avoid getting stuck on a non-frontier card
+    // that triggers isAtFrontier and blocks further navigation.
+    let frontierCandidate = -1;
+    for (let i = state.viewingIndex + 1; i < state.deck.length; i++) {
+      const c = state.deck[i];
+      const matchesFilter = !state.viewFilter || state.viewFilter.length === 0 || state.viewFilter.includes(c.type);
+      if (!matchesFilter) continue;
+      if (votedIdSet.has(c.id)) {
+        // Voted character — safe to land on
+        dispatch({ type: "NAVIGATE", payload: { index: i } });
+        return;
+      }
+      if (frontierCandidate === -1) {
+        // First unvoted matching character — this is the frontier
+        frontierCandidate = i;
       }
     }
-  }, [state.viewingIndex, state.currentIndex, state.deck, state.gameComplete]);
+    // No more voted characters ahead — jump to the frontier if found
+    if (frontierCandidate !== -1) {
+      dispatch({ type: "NAVIGATE", payload: { index: frontierCandidate } });
+    }
+  }, [state.viewingIndex, state.deck, state.viewFilter, state.gameComplete, isAtFrontier, votedIdSet]);
 
   // On game complete: flush any buffered votes, then update previousVotes and
   // show the "Picks saved" toast once the last batch has landed.
@@ -977,34 +1238,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
       currentCharacter,
       nextCharacter,
       progress,
+      filteredProgress,
       stats,
       voteCounts,
       previousVotes,
       isAtFrontier,
       hasRestored,
       startGame,
+      setViewFilter,
       swipe,
       endGame,
       reset,
       navigateBack,
       navigateForward,
+      flushPendingVotes: flushVotes,
     }),
     [
       state,
       currentCharacter,
       nextCharacter,
       progress,
+      filteredProgress,
       stats,
       voteCounts,
       previousVotes,
       isAtFrontier,
       hasRestored,
       startGame,
+      setViewFilter,
       swipe,
       endGame,
       reset,
       navigateBack,
       navigateForward,
+      flushVotes,
     ]
   );
 

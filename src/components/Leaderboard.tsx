@@ -22,15 +22,10 @@ export function Leaderboard({ onClose }: { onClose: () => void }) {
       }))
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, 25)
-      .map((entry) => {
-        const char = characterById.get(entry.characterId);
-        return {
-          ...entry,
-          character: char
-            ? { name: char.name, game: char.game, type: char.type }
-            : null,
-        };
-      });
+      .map((entry) => ({
+        ...entry,
+        character: characterById.get(entry.characterId) ?? null,
+      }));
   }, [allVotes, sortBy]);
 
   // Close on Escape
@@ -141,7 +136,7 @@ export function Leaderboard({ onClose }: { onClose: () => void }) {
           ) : (
             <div className="space-y-1.5">
               {entries.map((entry, i) => {
-                const char = characterById.get(entry.characterId);
+                const char = entry.character;
                 const total = entry.smash + entry.pass;
                 const pct = total > 0 ? Math.round(((sortBy === "smash" ? entry.smash : entry.pass) / total) * 100) : 0;
 

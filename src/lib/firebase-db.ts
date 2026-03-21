@@ -238,12 +238,24 @@ export async function recordAuthenticatedVotes(
 
   const db = getAdminDb();
 
-  // ── 1. Read trusted previous votes from /users/{uid}/votes ────────────
-  const userVotesSnap = await db.ref(`users/${uid}/votes`).get();
-  const trustedPrevVotes = (userVotesSnap.val() ?? {}) as Record<
-    string,
-    "smash" | "pass"
-  >;
+  // ── 1. Read only the specific previous votes needed for delta computation.
+  //    For a batch of 5, this reads 5 small paths instead of the user's
+  //    entire vote history (which could be 200+ entries).
+  const trustedPrevVotes: Record<string, "smash" | "pass"> = {};
+  await Promise.all(
+    batch.map(async ({ characterId }) => {
+      if (!isValidCharacterId(characterId)) return;
+      const key = sanitizeFirebaseKey(characterId);
+      const snap = await db.ref(`users/${uid}/votes/${key}`).get();
+      const val = snap.val();
+      if (val === "smash" || val === "pass") {
+        // Store under both raw and sanitized keys so computeAuthVoteDeltas
+        // finds the match regardless of which key format it checks.
+        trustedPrevVotes[characterId] = val;
+        trustedPrevVotes[key] = val;
+      }
+    })
+  );
 
   // ── 2. Compute deltas using trusted state ─────────────────────────────
   const { deltas, newUserVotes, changed } = computeAuthVoteDeltas(
@@ -312,14 +324,19 @@ export async function getMultipleCharacterVotes(
   if (ids.length === 0) return {};
 
   const db = getAdminDb();
-  const snap = await db.ref("votes").get();
-  const all = snap.val() as VotesSnapshot | null;
 
+  // Fetch only the specific character paths in parallel instead of the
+  // entire /votes tree (~252 entries). For a typical batch of 5, this
+  // reads 5 small nodes instead of one large snapshot.
   const result: Record<string, VoteData> = {};
-  for (const id of ids) {
-    const key = sanitizeFirebaseKey(id);
-    result[id] = { smash: all?.[key]?.smash ?? 0, pass: all?.[key]?.pass ?? 0 };
-  }
+  await Promise.all(
+    ids.map(async (id) => {
+      const key = sanitizeFirebaseKey(id);
+      const snap = await db.ref(`votes/${key}`).get();
+      const data = snap.val() as VoteData | null;
+      result[id] = { smash: data?.smash ?? 0, pass: data?.pass ?? 0 };
+    })
+  );
   return result;
 }
 

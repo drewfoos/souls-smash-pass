@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getUserData, buildUserStats, resetUserHistory, setUserPublic, updateUserProfile } from "@/lib/firebase-user";
 import toast from "react-hot-toast";
@@ -175,14 +175,15 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
     : pct >= 20 ? "Picky Tarnished"
     : "Heart of Stone";
 
-  // Group smashed by type
-  const smashedByType = stats
-    ? stats.smashed.reduce<Record<string, typeof stats.smashed>>((acc, char) => {
-        if (!acc[char.type]) acc[char.type] = [];
-        acc[char.type].push(char);
-        return acc;
-      }, {})
-    : {};
+  // Group smashed by type — memoized so tab switches / input typing don't recompute
+  const smashedByType = useMemo(() => {
+    if (!stats) return {};
+    return stats.smashed.reduce<Record<string, typeof stats.smashed>>((acc, char) => {
+      if (!acc[char.type]) acc[char.type] = [];
+      acc[char.type].push(char);
+      return acc;
+    }, {});
+  }, [stats]);
 
   const isAuthenticated = loadState !== "unauthenticated";
 

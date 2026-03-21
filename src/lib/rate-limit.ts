@@ -88,22 +88,23 @@ export async function rateLimit(
   try {
     const db = getAdminDb();
     const rlRef = db.ref(`rateLimit/${safeKey}`);
-    const snap = await rlRef.get();
-    const data = snap.val() as { count: number; resetAt: number } | null;
 
-    // Window expired or first request — start fresh
-    if (!data || now > data.resetAt) {
-      await rlRef.set({ count: 1, resetAt: now + windowMs });
-      return { ok: true, remaining: maxRequests - 1, resetIn: windowMs };
-    }
+    // Use a transaction for atomic read-increment to prevent race conditions
+    // where concurrent requests both read the same count and bypass the limit.
+    const result = await rlRef.transaction(
+      (current: { count: number; resetAt: number } | null) => {
+        if (!current || now > current.resetAt) {
+          return { count: 1, resetAt: now + windowMs };
+        }
+        return { ...current, count: current.count + 1 };
+      }
+    );
 
-    const newCount = data.count + 1;
-    await rlRef.update({ count: newCount });
-
-    const remaining = Math.max(0, maxRequests - newCount);
+    const data = result.snapshot.val() as { count: number; resetAt: number };
+    const remaining = Math.max(0, maxRequests - data.count);
     const resetIn = data.resetAt - now;
 
-    return { ok: newCount <= maxRequests, remaining, resetIn };
+    return { ok: data.count <= maxRequests, remaining, resetIn };
   } catch {
     // Firebase unavailable — fall back to in-memory (still provides per-instance protection)
     return memoryRateLimit(key, maxRequests, windowMs);

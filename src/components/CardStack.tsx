@@ -11,7 +11,11 @@ export function CardStack() {
   // Show the single character at viewingIndex as a non-interactive card.
   if (!isAtFrontier) {
     const viewChar = state.deck[state.viewingIndex];
-    const historyEntry = state.history[state.viewingIndex];
+    // History entries don't map 1:1 to deck indices when viewFilter skips
+    // characters, so look up by character ID instead of position.
+    const historyEntry = viewChar
+      ? state.history.find((h) => h.character.id === viewChar.id)
+      : undefined;
     if (!viewChar) return null;
 
     return (
@@ -36,10 +40,12 @@ export function CardStack() {
   }
 
   // ----- Normal voting mode -----
-  const visibleCards = state.deck.slice(
-    state.currentIndex,
-    state.currentIndex + 3
-  );
+  // With viewFilter, the frontier card may be past currentIndex (non-matching
+  // characters were skipped). Show cards starting from viewingIndex.
+  const frontierStart = state.viewingIndex >= state.currentIndex
+    ? state.viewingIndex
+    : state.currentIndex;
+  const visibleCards = state.deck.slice(frontierStart, frontierStart + 3);
 
   if (!currentCharacter) return null;
 

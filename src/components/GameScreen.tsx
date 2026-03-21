@@ -19,7 +19,9 @@ export function GameScreen() {
     swipe,
     currentCharacter,
     progress,
+    filteredProgress,
     startGame,
+    setViewFilter,
     state,
     isAtFrontier,
     navigateBack,
@@ -81,10 +83,12 @@ export function GameScreen() {
   }, [handleKeyDown]);
 
   const handleFilterApply = (types?: CharacterType[]) => {
-    startGame(undefined, types);
+    setViewFilter(types);
   };
 
-  // Show OthersChose for the character currently on screen
+  // Show OthersChose for the character currently on screen.
+  // In history-browsing mode, show the character at viewingIndex.
+  // At the frontier, show the most recently voted character.
   const displayChar =
     !isAtFrontier
       ? state.deck[state.viewingIndex] ?? null
@@ -97,7 +101,7 @@ export function GameScreen() {
       {/* Screen reader announcement for current character */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {currentCharacter
-          ? `Now showing: ${currentCharacter.name}, character ${Math.min(progress.current + 1, progress.total)} of ${progress.total}`
+          ? `Now showing: ${currentCharacter.name}, character ${Math.min(filteredProgress.viewing, filteredProgress.total)} of ${filteredProgress.total}`
           : "No more characters"}
       </div>
 
@@ -107,14 +111,14 @@ export function GameScreen() {
       <MobileMenu
         onOpenLeaderboard={() => setShowLeaderboard(true)}
         onOpenProfile={(tab) => { setProfileTab(tab); setShowProfile(true); }}
-        currentTypes={state.selectedTypes}
+        currentTypes={state.viewFilter}
         onFilterApply={handleFilterApply}
       />
 
       {/* Filter dropdown — fixed top-left, desktop only */}
       <div className="hidden md:block">
         <FilterDropdown
-          currentTypes={state.selectedTypes}
+          currentTypes={state.viewFilter}
           onApply={handleFilterApply}
         />
       </div>
@@ -204,14 +208,14 @@ export function GameScreen() {
 
           <span>Character</span>
           <span className="inline-flex items-center justify-center px-3 py-0.5 rounded-lg bg-dark-700/60 text-priscilla font-bold tabular-nums min-w-[2.5rem] text-center">
-            {Math.min(state.viewingIndex + 1, progress.total)}
+            {Math.min(filteredProgress.viewing, filteredProgress.total)}
           </span>
-          <span>of {progress.total}</span>
+          <span>of {filteredProgress.total}</span>
 
           {/* Forward arrow */}
           <button
             onClick={navigateForward}
-            disabled={state.gameComplete && state.viewingIndex >= state.deck.length - 1}
+            disabled={isAtFrontier || (state.gameComplete && state.viewingIndex >= state.deck.length - 1)}
             className="p-1 rounded-md text-priscilla/40 hover:text-priscilla/80 hover:bg-dark-700/40
               disabled:opacity-20 disabled:cursor-not-allowed transition-all"
             aria-label="Next character"

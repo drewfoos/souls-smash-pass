@@ -7,7 +7,10 @@ export function ActionButtons() {
 
   // ── History-browsing mode ──────────────────────────────────────────────────
   if (!isAtFrontier) {
-    const entry = state.history[state.viewingIndex];
+    const viewChar = state.deck[state.viewingIndex];
+    const entry = viewChar
+      ? state.history.find((h) => h.character.id === viewChar.id)
+      : undefined;
     if (!entry) return <div className="h-[52px]" />;
 
     const isSmash = entry.action === "smash";
