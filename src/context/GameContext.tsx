@@ -219,16 +219,6 @@ const initialState: GameState = {
 // Helpers — find the next/previous deck index matching a view filter
 // ---------------------------------------------------------------------------
 
-/** Find the next index >= `from` where deck[i].type matches the filter. Returns deck.length if none. */
-function nextFilteredIndex(deck: Character[], from: number, filter: CharacterType[] | null): number {
-  if (!filter || filter.length === 0) return from;
-  for (let i = from; i < deck.length; i++) {
-    if (filter.includes(deck[i].type)) return i;
-  }
-  return deck.length; // nothing matches after `from`
-}
-
-
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "START_GAME": {
@@ -474,7 +464,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       for (const h of saved.history) anonVotedIds.current.set(h.character.id, h.action);
     }
     setHasRestored(true); // signal to GameRouter that it can now decide
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // empty deps = run exactly once after mount
 
   const { user } = useAuth();
@@ -630,6 +619,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
 
     prevUserRef.current = user;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- sendBatch is stable via ref; re-running on it would cause loops
   }, [user]);
 
   // ── Vote counts cache (populated from batch vote API responses) ──────────
@@ -922,6 +912,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- restoreFromFirebase/syncPreviousVotes are stable via refs; only re-subscribe when user changes
   }, [user]);
 
   // ── Per-vote submission ──────────────────────────────────────────────────
@@ -1228,6 +1219,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     syncPreviousVotes({});
     clearProgress();
     dispatch({ type: "RESET" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- syncPreviousVotes is stable; resetGame should not change identity
   }, []);
 
   // ── Memoized provider value ─────────────────────────────────────────────

@@ -21,7 +21,8 @@
       "Bash(npx --no-install tsc --noEmit)",
       "Bash(grep -r \"''use server''\" \"/c/Users/drewf/Downloads/dev/souls-smash-or-pass/src\" --include=\"*.ts\" --include=\"*.tsx\")",
       "Bash(vercel deploy:*)",
-      "Bash(find C:UsersdrewfDownloadsdevsouls-smash-or-pass -maxdepth 2 -type f \\\\\\(-name package.json -o -name tsconfig.json \\\\\\) -not -path */node_modules/*)"
+      "Bash(find C:UsersdrewfDownloadsdevsouls-smash-or-pass -maxdepth 2 -type f \\\\\\(-name package.json -o -name tsconfig.json \\\\\\) -not -path */node_modules/*)",
+      "Bash(ls C:/Users/drewf/Downloads/dev/souls-smash-or-pass/public/characters/*.webp)"
     ]
   }
 }

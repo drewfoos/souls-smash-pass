@@ -19,9 +19,7 @@ export function GameScreen() {
   const {
     swipe,
     currentCharacter,
-    progress,
     filteredProgress,
-    startGame,
     setViewFilter,
     state,
     isAtFrontier,
