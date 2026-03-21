@@ -42,7 +42,8 @@ interface HistoryEntry {
 
 // ---------------------------------------------------------------------------
 // Game state — viewingIndex is where the user is *looking*, currentIndex is
-// the frontier (next unvoted character).  viewingIndex ≤ currentIndex always.
+// the frontier (lowest unvoted index).  With a viewFilter active, viewingIndex
+// can exceed currentIndex because filter-voting skips non-matching characters.
 // ---------------------------------------------------------------------------
 
 interface GameState {
@@ -279,10 +280,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         nextView++;
       }
 
+      // If no unvoted matching character exists (filter exhausted), stay on the
+      // character we just voted on so the UI can show a "category complete" state
+      // instead of going blank.
+      const filterExhausted = nextView >= state.deck.length && state.viewFilter && state.viewFilter.length > 0 && !complete;
+      const finalView = filterExhausted ? votedIdx : Math.min(nextView, state.deck.length);
+
       return {
         ...state,
         currentIndex: newCurrentIndex,
-        viewingIndex: Math.min(nextView, state.deck.length),
+        viewingIndex: finalView,
         history: newHistory,
         gameComplete: complete,
         gameActive: !complete,
@@ -397,6 +404,8 @@ interface GameContextValue {
   previousVotes: Record<string, VoteChoice>;
   /** True when the user is looking at the frontier (not browsing history). */
   isAtFrontier: boolean;
+  /** True when a viewFilter is active and all matching characters have been voted. */
+  isFilterExhausted: boolean;
   /**
    * True once the one-time localStorage restore useEffect has completed.
    * GameRouter must wait for this before deciding whether to auto-start a new
@@ -491,6 +500,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!viewChar) return false;
     return !state.history.some((h) => h.character.id === viewChar.id);
   }, [state.viewingIndex, state.currentIndex, state.deck, state.history]);
+
+  // True when a filter is active and every matching character has been voted.
+  const isFilterExhausted = useMemo(() => {
+    const vf = state.viewFilter;
+    if (!vf || vf.length === 0) return false;
+    const voted = new Set(state.history.map((h) => h.character.id));
+    return state.deck
+      .filter((c) => vf.includes(c.type))
+      .every((c) => voted.has(c.id));
+  }, [state.deck, state.viewFilter, state.history]);
 
   const currentCharacter = useMemo(
     () =>
@@ -1113,11 +1132,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const navigateBack = useCallback(() => {
     if (state.viewingIndex <= 0) return;
-    // Find the previous voted character. When a viewFilter is active, prefer
-    // characters matching the filter, but always allow reaching any voted
-    // character so the user can review their full history.
+    // Find the previous voted character matching the active filter.
+    // When a filter is active, ONLY land on matching characters — never
+    // fall back to non-matching types, which confuses the UI.
     const hasFilter = state.viewFilter && state.viewFilter.length > 0;
-    let fallback = -1;
     for (let i = state.viewingIndex - 1; i >= 0; i--) {
       const c = state.deck[i];
       if (!votedIdSet.has(c.id)) continue;
@@ -1125,18 +1143,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "NAVIGATE", payload: { index: i } });
         return;
       }
-      // Track first voted char that doesn't match filter as fallback
-      if (fallback === -1) fallback = i;
-    }
-    // If nothing matched the filter, fall back to any voted character
-    if (fallback !== -1) {
-      dispatch({ type: "NAVIGATE", payload: { index: fallback } });
     }
   }, [state.viewingIndex, state.deck, state.viewFilter, votedIdSet]);
 
   const navigateForward = useCallback(() => {
     // At the frontier — can't skip ahead without voting
-    if (isAtFrontier) {
+    if (isAtFrontier && !isFilterExhausted) {
       if (!state.gameComplete) {
         const char = state.deck[state.viewingIndex];
         if (char) {
@@ -1150,30 +1162,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Browsing history — find the next voted character matching the filter,
-    // or the frontier (first unvoted matching character). Skip unvoted gaps
-    // between voted characters to avoid getting stuck on a non-frontier card
-    // that triggers isAtFrontier and blocks further navigation.
-    let frontierCandidate = -1;
+    // Find the next character ahead that we can land on.
+    // With a filter active, only consider matching characters.
+    // If the filter is exhausted (all matching voted), only land on voted ones.
     for (let i = state.viewingIndex + 1; i < state.deck.length; i++) {
       const c = state.deck[i];
       const matchesFilter = !state.viewFilter || state.viewFilter.length === 0 || state.viewFilter.includes(c.type);
       if (!matchesFilter) continue;
       if (votedIdSet.has(c.id)) {
-        // Voted character — safe to land on
+        // Voted matching character — always safe to land on
         dispatch({ type: "NAVIGATE", payload: { index: i } });
         return;
       }
-      if (frontierCandidate === -1) {
+      if (!isFilterExhausted) {
         // First unvoted matching character — this is the frontier
-        frontierCandidate = i;
+        dispatch({ type: "NAVIGATE", payload: { index: i } });
+        return;
       }
+      // Filter exhausted — skip unvoted non-matching characters
     }
-    // No more voted characters ahead — jump to the frontier if found
-    if (frontierCandidate !== -1) {
-      dispatch({ type: "NAVIGATE", payload: { index: frontierCandidate } });
-    }
-  }, [state.viewingIndex, state.deck, state.viewFilter, state.gameComplete, isAtFrontier, votedIdSet]);
+  }, [state.viewingIndex, state.deck, state.viewFilter, state.gameComplete, isAtFrontier, isFilterExhausted, votedIdSet]);
 
   // On game complete: flush any buffered votes, then update previousVotes and
   // show the "Picks saved" toast once the last batch has landed.
@@ -1235,6 +1243,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       voteCounts,
       previousVotes,
       isAtFrontier,
+      isFilterExhausted,
       hasRestored,
       startGame,
       setViewFilter,
@@ -1255,6 +1264,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       voteCounts,
       previousVotes,
       isAtFrontier,
+      isFilterExhausted,
       hasRestored,
       startGame,
       setViewFilter,

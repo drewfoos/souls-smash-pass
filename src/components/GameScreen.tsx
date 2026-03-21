@@ -23,12 +23,25 @@ export function GameScreen() {
     setViewFilter,
     state,
     isAtFrontier,
+    isFilterExhausted,
     navigateBack,
     navigateForward,
   } = useGame();
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [profileTab, setProfileTab] = useState<ProfileTab>("profile");
+
+  // Back button is disabled when there's no voted matching character behind us
+  const backDisabled = filteredProgress.viewing <= 1;
+
+  // Forward button is disabled when there's nowhere meaningful to go:
+  const forwardDisabled =
+    // At the frontier with unvoted characters ahead — must vote first
+    (isAtFrontier && !isFilterExhausted) ||
+    // Filter exhausted and already viewing the last character in the category
+    (isFilterExhausted && filteredProgress.viewing >= filteredProgress.total) ||
+    // Game fully complete and at the very last character in the deck
+    (state.gameComplete && state.viewingIndex >= state.deck.length - 1);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -197,7 +210,7 @@ export function GameScreen() {
           {/* Back arrow */}
           <button
             onClick={navigateBack}
-            disabled={state.viewingIndex === 0}
+            disabled={backDisabled}
             className="p-1 rounded-md text-priscilla/40 hover:text-priscilla/80 hover:bg-dark-700/40
               disabled:opacity-20 disabled:cursor-not-allowed transition-all"
             aria-label="Previous character"
@@ -214,7 +227,7 @@ export function GameScreen() {
           {/* Forward arrow */}
           <button
             onClick={navigateForward}
-            disabled={isAtFrontier || (state.gameComplete && state.viewingIndex >= state.deck.length - 1)}
+            disabled={forwardDisabled}
             className="p-1 rounded-md text-priscilla/40 hover:text-priscilla/80 hover:bg-dark-700/40
               disabled:opacity-20 disabled:cursor-not-allowed transition-all"
             aria-label="Next character"
