@@ -113,7 +113,7 @@ export function MobileMenu({
   const firstName = user?.displayName?.split(" ")[0] ?? "Tarnished";
 
   return (
-    <div className="fixed top-2 right-2 z-50 md:hidden" ref={menuRef}>
+    <div className="fixed top-2 right-2 z-50 md:hidden landscape-short:!block" ref={menuRef}>
       {/* Hamburger button */}
       <button
         onClick={() => setOpen((o) => !o)}
@@ -128,7 +128,7 @@ export function MobileMenu({
 
       {/* Menu panel */}
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-64 rounded-xl bg-dark-800/95 border border-dark-600/40 backdrop-blur-md shadow-2xl overflow-hidden animate-fade-in">
+        <div className="absolute right-0 top-full mt-1.5 w-64 rounded-xl bg-dark-800/95 border border-dark-600/40 backdrop-blur-md shadow-2xl overflow-hidden animate-fade-in landscape-short:max-h-[calc(100dvh-3.5rem)] landscape-short:overflow-y-auto">
 
           {/* User section */}
           {!loading && user && (

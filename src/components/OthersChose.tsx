@@ -33,34 +33,33 @@ export function OthersChose({ character }: OthersChoseProps) {
   const loading = total === 0;
 
   return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className="text-lg font-semibold text-priscilla/80">
+    <div className="flex flex-col items-center gap-0.5 landscape-short:gap-0">
+      <span className="text-lg landscape-short:text-xs font-semibold text-priscilla/80">
         What Others Chose for{" "}
         <span style={{ color: typeColors.text }}>{character.name}</span>...
       </span>
 
-      <div className="flex flex-row w-full items-center justify-center gap-2">
+      <div className="flex flex-row w-full items-center justify-center gap-2 landscape-short:gap-1">
         {/* Passes */}
         <div className="flex flex-col items-end w-1/3">
-          <span className="font-semibold text-lg text-pass">Passes</span>
+          <span className="font-semibold text-lg landscape-short:text-xs text-pass">Passes</span>
           {loading ? (
             <>
-              <div className="h-[32px] w-full rounded bg-pass/10 animate-pulse" />
-              <div className="h-[28px] w-10 rounded bg-dark-700/40 animate-pulse mt-0.5" />
+              <div className="h-[32px] landscape-short:h-[16px] w-full rounded bg-pass/10 animate-pulse" />
+              <div className="h-[28px] landscape-short:h-[16px] w-10 rounded bg-dark-700/40 animate-pulse mt-0.5" />
             </>
           ) : (
             <>
               <div
-                className="rounded transition-all duration-700 ml-auto"
+                className="rounded transition-all duration-700 ml-auto h-[32px] landscape-short:h-[16px]"
                 style={{
-                  height: "32px",
                   borderRadius: "4px",
                   backgroundColor: "rgba(255, 82, 119, 0.5)",
                   width: `${passPercent}%`,
                   minWidth: "4px",
                 }}
               />
-              <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
+              <span className="font-semibold text-lg landscape-short:text-xs text-priscilla/70 tabular-nums">
                 {votes.pass.toLocaleString()}
               </span>
             </>
@@ -69,7 +68,7 @@ export function OthersChose({ character }: OthersChoseProps) {
 
         {/* Thumbnail */}
         <div
-          className="flex items-center justify-center w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden shrink-0 my-1"
+          className="flex items-center justify-center w-24 h-24 md:w-32 md:h-32 landscape-short:w-12 landscape-short:h-12 rounded-xl landscape-short:rounded-lg overflow-hidden shrink-0 my-1 landscape-short:my-0"
           style={{
             border: `4px solid ${typeColors.border}`,
             background: "rgba(20,20,28,0.9)",
@@ -82,25 +81,24 @@ export function OthersChose({ character }: OthersChoseProps) {
 
         {/* Smashes */}
         <div className="flex flex-col items-start w-1/3">
-          <span className="font-semibold text-lg text-smash">Smashes</span>
+          <span className="font-semibold text-lg landscape-short:text-xs text-smash">Smashes</span>
           {loading ? (
             <>
-              <div className="h-[32px] w-full rounded bg-smash/10 animate-pulse" />
-              <div className="h-[28px] w-10 rounded bg-dark-700/40 animate-pulse mt-0.5" />
+              <div className="h-[32px] landscape-short:h-[16px] w-full rounded bg-smash/10 animate-pulse" />
+              <div className="h-[28px] landscape-short:h-[16px] w-10 rounded bg-dark-700/40 animate-pulse mt-0.5" />
             </>
           ) : (
             <>
               <div
-                className="rounded transition-all duration-700"
+                className="rounded transition-all duration-700 h-[32px] landscape-short:h-[16px]"
                 style={{
-                  height: "32px",
                   borderRadius: "4px",
                   backgroundColor: "rgba(46, 232, 154, 0.5)",
                   width: `${smashPercent}%`,
                   minWidth: "4px",
                 }}
               />
-              <span className="font-semibold text-lg text-priscilla/70 tabular-nums">
+              <span className="font-semibold text-lg landscape-short:text-xs text-priscilla/70 tabular-nums">
                 {votes.smash.toLocaleString()}
               </span>
             </>

@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Phone landscape: landscape orientation AND short viewport (excludes tablets) */
+@custom-variant landscape-short {
+  @media (orientation: landscape) and (max-height: 500px) {
+    @slot;
+  }
+}
+
 @theme {
   /* Background — dark charcoal matching PokeSmash's #161816 */
   --color-abyss: #161816;
@@ -91,6 +98,31 @@
     border-radius: 1rem;
   }
 
+  /* Game title — shrinks in phone landscape */
+  .game-title {
+    font-size: clamp(1.5rem, 4dvh, 2.5rem);
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .game-title {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Game card — portrait uses dvh height, landscape uses container height */
+  .game-card {
+    height: clamp(200px, 52.5dvh, 600px);
+    aspect-ratio: 3 / 4;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .game-card {
+      height: 100%;
+      width: auto;
+      max-height: 90dvh;
+    }
+  }
+
   /* Big outlined buttons — PokeSmash style */
   .btn-action {
     font-family: var(--font-cinzel);
@@ -112,7 +144,21 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  @media (min-width: 640px) {
+  /* Phone landscape — scale buttons to viewport */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .btn-action {
+      width: clamp(100px, 18vw, 180px);
+      height: clamp(36px, 10dvh, 60px);
+      font-size: clamp(0.85em, 2.5dvh, 1.4em);
+      border-width: 3px;
+      border-radius: 0.75rem;
+      padding: 0 0.5rem;
+      gap: 0.15em;
+    }
+  }
+
+  /* Desktop / tablet — large buttons */
+  @media (min-width: 640px) and (min-height: 500px) {
     .btn-action {
       width: 250px;
       height: 100px;
