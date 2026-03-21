@@ -109,7 +109,7 @@ export function GameScreen() {
         : null;
 
   return (
-    <div className="h-dvh flex flex-col items-center justify-center overflow-y-auto overflow-x-hidden relative py-0 lg:py-2 xl:py-4" role="main" aria-label="Elden Smash or Pass Game">
+    <div className="h-dvh flex flex-col items-center overflow-hidden relative overscroll-none" role="main" aria-label="Elden Smash or Pass Game">
       {/* Screen reader announcement for current character */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {currentCharacter
@@ -177,10 +177,10 @@ export function GameScreen() {
 
       {/* ── Main content (centered, like pokesmash's Box) ───────────────────── */}
 
-      {/* Title — matches pokesmash: mt-4, gutterBottom, 4vh → calc(1rem+4vh) on desktop */}
+      {/* Title */}
       <h2
-        className="text-souls font-black text-center leading-none mt-4 mb-2 select-none"
-        style={{ fontSize: "clamp(1.5rem, 4vh, 2.5rem)" }}
+        className="text-souls font-black text-center leading-none shrink-0 mt-2 mb-1 md:mt-4 md:mb-2 select-none"
+        style={{ fontSize: "clamp(1.25rem, 3.5dvh, 2.5rem)" }}
       >
         <span className="text-gold drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]">
           Elden
@@ -190,21 +190,19 @@ export function GameScreen() {
         </span>
       </h2>
 
-      {/* Card — matches pokesmash: 52.5vh mobile, max 600px desktop, 3:4 aspect ratio */}
+      {/* Card — flex-1 takes remaining space, capped by aspect ratio and max-height */}
       <div
-        className="w-full max-w-[90vw] sm:max-w-[450px]"
+        className="w-full max-w-[90vw] sm:max-w-[450px] flex-1 min-h-0"
         style={{
-          height: "52.5vh",
-          minHeight: "300px",
-          maxHeight: "600px",
+          maxHeight: "min(52dvh, 600px)",
           aspectRatio: "3/4",
         }}
       >
         <CardStack />
       </div>
 
-      {/* Controls stack — fixed height with even spacing, like pokesmash's Stack(h:400, mt:'1rem', spacing:4) */}
-      <div className="flex flex-col items-center justify-between w-full" style={{ height: "400px", marginTop: "1rem" }}>
+      {/* Controls stack — flex layout, no fixed height */}
+      <div className="flex flex-col items-center justify-between w-full shrink-0 gap-1 mt-1 md:mt-3 pb-1 md:pb-2">
         {/* Counter with navigation arrows */}
         <div className="flex items-center gap-1.5 text-lg md:text-xl lg:text-2xl xl:text-3xl text-priscilla/70 font-bold">
           {/* Back arrow */}
@@ -271,12 +269,8 @@ export function GameScreen() {
 
 
         {/* What Others Chose */}
-        <div className="w-full max-w-xl px-4">
-          {displayChar ? (
-            <OthersChose character={displayChar} />
-          ) : (
-            <div className="h-[100px]" />
-          )}
+        <div className="w-full max-w-xl px-4 min-h-0">
+          {displayChar && <OthersChose character={displayChar} />}
         </div>
       </div>
 

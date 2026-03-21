@@ -69,7 +69,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`dark ${cinzel.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen antialiased">
+      <body className="min-h-dvh antialiased">
         {/* Subtle animated fog */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 animate-fog bg-gradient-to-br from-gold/[0.015] via-transparent to-crimson-bright/[0.01]" />

@@ -59,6 +59,10 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { color-scheme: dark; }
 
+  html, body {
+    overscroll-behavior: none;
+  }
+
   body {
     background: var(--color-abyss);
     color: var(--color-priscilla);
