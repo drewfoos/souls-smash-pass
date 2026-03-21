@@ -33,7 +33,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // data: needed for Next.js image placeholders; blob: for canvas operations
       // Restricted to known image CDNs + Google profile photos (no open https:)
-      "img-src 'self' data: blob: https://*.googleusercontent.com",
+      "img-src 'self' data: blob: https://*.googleusercontent.com https://static.wikia.nocookie.net",
       "font-src 'self' data: https://fonts.gstatic.com",
       // wss:// is required for Firebase's WebSocket transport (preferred over long-polling).
       // https:// covers REST + long-polling fallback.

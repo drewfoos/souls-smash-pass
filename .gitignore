@@ -37,9 +37,9 @@ next-env.d.ts
 # bun
 bun.lockb
 
-# downloaded character images (run `bun run download-images` to populate)
+# downloaded character images — raw sources (run `bun run download-images` to populate)
 /public/characters/*.jpg
 /public/characters/*.png
-/public/characters/*.webp
+# .webp files are committed so they deploy to Vercel
 
 .vercel
