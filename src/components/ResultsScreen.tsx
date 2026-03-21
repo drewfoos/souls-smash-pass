@@ -195,6 +195,7 @@ export function ResultsScreen() {
           onClick={() => startGame(
             state.selectedGames ?? undefined,
             state.selectedTypes ?? undefined,
+            { replay: true },
           )}
           className="btn-primary px-8 py-3 text-sm flex items-center gap-2"
         >

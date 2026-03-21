@@ -115,7 +115,7 @@ export function SwipeCard({
       >
         {/* Character image */}
         <div className="absolute inset-0">
-          <CharacterImage character={character} />
+          <CharacterImage character={character} priority={isTop} />
         </div>
 
         {/* Gradients for readability */}

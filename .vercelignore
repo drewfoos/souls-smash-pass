@@ -1,0 +1,6 @@
+# JPGs are kept locally for the download script's cache check but WebPs are
+# the deployed format — no need to upload both.
+public/characters/*.jpg
+
+# Local-only tooling — not needed at runtime.
+scripts/

@@ -58,7 +58,7 @@ interface GameState {
 }
 
 type GameAction =
-  | { type: "START_GAME"; payload?: { games?: Game[]; types?: CharacterType[]; seed?: number } }
+  | { type: "START_GAME"; payload?: { games?: Game[]; types?: CharacterType[]; seed?: number; pool?: Character[] } }
   | { type: "SWIPE"; payload: { action: SwipeAction } }
   | { type: "END_GAME" }
   | { type: "NAVIGATE"; payload: { index: number } }
@@ -204,11 +204,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const games = action.payload?.games ?? null;
       const types = action.payload?.types ?? null;
       const seed = action.payload?.seed ?? getWeeklySeed();
-      let pool = characters;
-      if (games && games.length > 0) pool = pool.filter((c) => games.includes(c.game));
-      if (types && types.length > 0) pool = pool.filter((c) => types.includes(c.type));
+      // pool is pre-filtered by startGame — reducer just shuffles it.
+      const pool = action.payload?.pool ?? [];
 
-      // Guard: if filters eliminate all characters, don't start an empty game
       if (pool.length === 0) return state;
 
       const deck = shuffleWithSeed(pool, seed);
@@ -301,7 +299,7 @@ interface GameContextValue {
    * calls clearProgress()) before we've had a chance to load saved progress.
    */
   hasRestored: boolean;
-  startGame: (games?: Game[], types?: CharacterType[]) => void;
+  startGame: (games?: Game[], types?: CharacterType[], options?: { replay?: boolean }) => void;
   swipe: (action: SwipeAction) => void;
   endGame: () => void;
   reset: () => void;
@@ -337,6 +335,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // ever get to read it here.
   const [hasRestored, setHasRestored] = useState(false);
 
+  // Tracks which characters the anon user has voted on (and how) across filter
+  // changes. Stored as Map<charId, action> so the action can be forwarded to
+  // /api/vote when the user signs in. Auth users use previousVotesRef instead.
+  const anonVotedIds = useRef<Map<string, SwipeAction>>(new Map());
+
   // ── One-time restore from best available local progress ──────────────────
   // Runs only on the client, after the initial hydration is complete.
   // We also clean up the legacy key here so it doesn't linger.
@@ -347,12 +350,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (saved) {
       dispatch({ type: "RESTORE", payload: saved });
       voteQueue.current.setFrontier(saved.currentIndex);
+      // Seed the anon voted map so filter changes exclude already-voted chars
+      // and sign-in can forward the action to the server.
+      for (const h of saved.history) anonVotedIds.current.set(h.character.id, h.action);
     }
     setHasRestored(true); // signal to GameRouter that it can now decide
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // empty deps = run exactly once after mount
 
   const { user } = useAuth();
+
+  // Stable ref to the current user so startGame doesn't need user as a dep.
+  const userRef = useRef(user);
+  useEffect(() => { userRef.current = user; }, [user]);
 
   // ── Refs so effects can read latest values without re-subscribing ────────
   const stateRef = useRef<GameState>(state);
@@ -440,6 +450,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem(LS_SCORE_KEY);
         }
       } catch { /* ignore */ }
+      // Carry Firebase vote history into the anon map so filter changes after
+      // sign-out still exclude characters the user already voted on.
+      for (const [id, action] of Object.entries(previousVotesRef.current)) {
+        anonVotedIds.current.set(id, action as SwipeAction);
+      }
     }
 
     prevUserRef.current = user;
@@ -451,7 +466,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // ── Previous votes — loaded from Firebase when user signs in ─────────────
   // Used to compute net deltas so vote-switching adjusts counts correctly.
   const previousVotesRef = useRef<Record<string, VoteChoice>>({});
+  const previousVoteIdsRef = useRef<Set<string>>(new Set());
   const [previousVotes, setPreviousVotes] = useState<Record<string, VoteChoice>>({});
+
+  // Single helper so every write to previousVotesRef also updates previousVoteIdsRef.
+  // Both refs are stable; setPreviousVotes is a stable React setter — safe to call
+  // from anywhere without adding this helper to dependency arrays.
+  const syncPreviousVotes = useCallback((votes: Record<string, VoteChoice>) => {
+    previousVotesRef.current = votes;
+    previousVoteIdsRef.current = new Set(Object.keys(votes));
+    setPreviousVotes(votes);
+  }, []);
 
   // ── Shared restore helper ─────────────────────────────────────────────────
   // Both the sign-in effect and the tab-focus effect need to rebuild local
@@ -539,8 +564,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // local currentId (0), so we restore from Firebase position + votes.
   useEffect(() => {
     if (!user) {
-      previousVotesRef.current = {};
-      setPreviousVotes({});
+      syncPreviousVotes({});
       return;
     }
 
@@ -552,14 +576,55 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const fbVotes = (data?.votes ?? {}) as Record<string, VoteChoice>;
         const fbCurrentId = data?.currentId ?? 0;
 
-        previousVotesRef.current = fbVotes;
-        setPreviousVotes(fbVotes);
-
         const currentState = stateRef.current;
+        // Capture at sign-in time so async callbacks below can show a toast
+        // when the user signs in after already finishing a run anonymously.
+        const wasGameComplete = stateRef.current.gameComplete;
+
+        // ── Merge anonymous votes into the authenticated session ─────────────
+        //
+        // The user may have voted on characters before signing in. Those votes
+        // live in anonVotedIds (accumulated across filter changes). We:
+        //   1. Build a merged vote map: Firebase votes win on conflict.
+        //   2. Send any anon votes not yet in Firebase via /api/vote.
+        //   3. Clear anonVotedIds — auth map is now the source of truth.
+        const anonEntries = Array.from(anonVotedIds.current.entries());
+        const unsyncedAnon = anonEntries.filter(([id]) => !fbVotes[id]);
+
+        const mergedVotes: Record<string, VoteChoice> = { ...fbVotes };
+        for (const [id, action] of anonEntries) {
+          if (!(id in mergedVotes)) mergedVotes[id] = action;
+        }
+
+        syncPreviousVotes(mergedVotes);
+        anonVotedIds.current.clear();
 
         // Write/refresh profile metadata once at sign-in so display name and
         // avatar stay current without being part of the vote write path.
         saveUserProfile(user).catch(console.error);
+
+        if (unsyncedAnon.length > 0) {
+          getIdToken(user)
+            .then((token) =>
+              fetch("/api/vote", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  votes: unsyncedAnon.map(([characterId, action]) => ({ characterId, action })),
+                  // No currentIndex/runConfig — anon votes don't carry position metadata.
+                }),
+              })
+            )
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              if (d?.voteCounts) setVoteCounts((prev) => ({ ...prev, ...d.voteCounts }));
+              if (wasGameComplete) toast.success("Picks saved", { id: "picks-saved", duration: 2500 });
+            })
+            .catch(console.error);
+        }
 
         if (fbCurrentId > localCurrentIndex) {
           // ── Firebase is further ahead — restore from Firebase ─────────────
@@ -597,15 +662,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
                   })
                 )
                 .then((r) => (r.ok ? r.json() : null))
-                .then((data) => {
-                  if (data?.voteCounts) {
-                    setVoteCounts((prev) => ({ ...prev, ...data.voteCounts }));
+                .then((d) => {
+                  if (d?.voteCounts) {
+                    setVoteCounts((prev) => ({ ...prev, ...d.voteCounts }));
                   }
-                  // Update previousVotes so future delta calcs are correct.
-                  const updated = { ...fbVotes };
+                  // Update previousVotes: merged base + local history on top.
+                  const updated = { ...mergedVotes };
                   for (const h of localHistory) updated[h.character.id] = h.action;
-                  previousVotesRef.current = updated;
-                  setPreviousVotes(updated);
+                  syncPreviousVotes(updated);
+                  if (wasGameComplete) toast.success("Picks saved", { id: "picks-saved", duration: 2500 });
                 })
                 .catch(console.error);
             }
@@ -642,8 +707,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           const localCurrentIndex = stateRef.current.currentIndex;
 
           // Update the trusted previous-votes cache regardless
-          previousVotesRef.current = fbVotes;
-          setPreviousVotes(fbVotes);
+          syncPreviousVotes(fbVotes);
 
           // If Firebase is ahead of this tab, reconcile
           if (fbCurrentId > localCurrentIndex) {
@@ -763,18 +827,52 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // ── Game actions ──────────────────────────────────────────────────────────
 
-  const startGame = useCallback((games?: Game[], types?: CharacterType[]) => {
-    // Pre-check: warn if filters would produce an empty deck
+  const startGame = useCallback((games?: Game[], types?: CharacterType[], options?: { replay?: boolean }) => {
+    const isReplay = options?.replay ?? false;
+
+    // Build the filtered pool once. All eligibility checks happen here so the
+    // reducer only has to shuffle — no second pass.
     let pool = characters;
     if (games && games.length > 0) pool = pool.filter((c) => games.includes(c.game));
     if (types && types.length > 0) pool = pool.filter((c) => types.includes(c.type));
+
     if (pool.length === 0) {
       toast.error("No characters match those filters!", { id: "empty-filters", duration: 3000 });
       return;
     }
+
+    // Replay bypasses vote exclusion — the user explicitly wants to re-vote.
+    // Otherwise, subtract already-voted characters in this same pass. Auth users
+    // use the Firebase vote map; anon users use the in-session accumulator.
+    if (!isReplay) {
+      // Auth: use the pre-maintained ID set — no allocation needed.
+      // Anon: anonVotedIds is a Map, so .has() is O(1) directly.
+      const voted = userRef.current ? previousVoteIdsRef.current : anonVotedIds.current;
+      pool = pool.filter((c) => !voted.has(c.id));
+      if (pool.length === 0) {
+        toast.error(
+          types?.length
+            ? "You already voted on everything in this category. Try a different filter or Play Again to replay."
+            : "You already voted on everyone! Use Play Again to replay or Start Fresh to reset.",
+          { id: "empty-filters", duration: 4000 }
+        );
+        return;
+      }
+    }
+
+    // Cancel any pending debounce before resetting the queue so a stale flush
+    // from the previous run cannot fire after the new game has started.
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current);
+      flushTimer.current = null;
+    }
     voteQueue.current.reset();
-    clearProgress(); // clears all keys — fresh start
-    dispatch({ type: "START_GAME", payload: { games, types, seed: getWeeklySeed() } });
+    // Clear only the active run key. The non-active key is already empty because
+    // sign-in migrates offline→score and sign-out migrates score→offline before
+    // any user action reaches here. When multiple run types exist, this call
+    // should be scoped to the specific run type being replaced.
+    clearProgress(userRef.current ? LS_SCORE_KEY : LS_OFFLINE_KEY);
+    dispatch({ type: "START_GAME", payload: { games, types, seed: getWeeklySeed(), pool } });
   }, []);
 
   // Swipe lock — prevents double-trigger from rapid taps before React rerenders.
@@ -782,6 +880,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const swipe = useCallback(
     (action: SwipeAction) => {
+      if (state.gameComplete) return;
       if (swipeLock.current) return;
       swipeLock.current = true;
       // Release after a microtask — by then React will have processed the dispatch
@@ -789,7 +888,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       queueMicrotask(() => { swipeLock.current = false; });
 
       const char = state.deck[state.currentIndex];
-      if (char) queueVote(char.id, action);
+      if (char) {
+        queueVote(char.id, action);
+        anonVotedIds.current.set(char.id, action);
+      }
       dispatch({ type: "SWIPE", payload: { action } });
       // Position is now written by the server atomically with each vote batch
       // (currentIndex is included in the /api/vote payload). No separate client
@@ -835,8 +937,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         for (const entry of state.history) {
           updated[entry.character.id] = entry.action;
         }
-        previousVotesRef.current = updated;
-        setPreviousVotes(updated);
+        syncPreviousVotes(updated);
         toast.success("Picks saved", { duration: 2500 });
       }
     });
@@ -858,6 +959,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       flushTimer.current = null;
     }
     voteQueue.current.reset();
+    anonVotedIds.current.clear();
+    // Clear the previous-votes cache so the GameRouter auto-start after reset
+    // sees an empty voted set and includes all characters in the new deck.
+    // Firebase still has the data and will re-populate this on next sign-in or
+    // tab focus.
+    syncPreviousVotes({});
     clearProgress();
     dispatch({ type: "RESET" });
   }, []);

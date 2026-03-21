@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun test:*)",
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(grep:*)",
+      "Bash(ls public/characters/*.jpg)",
+      "Bash(bun add:*)",
+      "Bash(bun run:*)",
+      "Bash(du -sh public/characters/*.jpg)",
+      "Bash(du -sh public/characters/*.webp)",
+      "Bash(ls public/characters/*.webp)",
+      "Bash(xargs du:*)",
+      "Bash(bun -e \":*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

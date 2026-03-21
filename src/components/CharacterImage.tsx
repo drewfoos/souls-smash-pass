@@ -6,6 +6,7 @@ import { type Character, type CharacterType, GAME_COLORS } from "@/data/characte
 interface CharacterImageProps {
   character: Character;
   className?: string;
+  priority?: boolean;
 }
 
 // Deterministic hash from string → number
@@ -32,7 +33,7 @@ const GAME_PATTERNS: Record<string, string[]> = {
   ER: ["#2e2a0e", "#161408", "#5a5020"],
 };
 
-export function CharacterImage({ character, className = "" }: CharacterImageProps) {
+export function CharacterImage({ character, className = "", priority = false }: CharacterImageProps) {
   const [imgFailed, setImgFailed] = useState(false);
   const gameColor = GAME_COLORS[character.game];
   const hash = useMemo(() => hashStr(character.id), [character.id]);
@@ -150,35 +151,32 @@ export function CharacterImage({ character, className = "" }: CharacterImageProp
     </div>
   );
 
-  // Try local image first (/characters/{id}.jpg), then remote URL, then stylized fallback
-  const localSrc = `/characters/${character.id}.jpg`;
+  // Try local WebP, fall back to remote URL, then stylized card.
+  // JPGs exist locally for the download-script cache check but are excluded
+  // from Vercel deployments via .vercelignore — WebP is the only served format.
+  const localWebp = `/characters/${character.id}.webp`;
   const remoteSrc = character.imageUrl || null;
 
-  // Determine which image source to try
   const [triedLocal, setTriedLocal] = useState(false);
-  const imgSrc = !imgFailed
-    ? !triedLocal
-      ? localSrc
-      : remoteSrc
-    : null;
+  const imgSrc = !imgFailed ? (!triedLocal ? localWebp : remoteSrc) : null;
 
   if (imgSrc) {
     return (
       <div className={`w-full h-full relative ${className}`}>
         {/* Stylized card as background/fallback — always rendered behind */}
         {StylizedCard}
-        {/* Actual image layered on top */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgSrc}
           alt={character.name}
           className="absolute inset-0 w-full h-full object-cover object-top z-10"
+          fetchPriority={priority ? "high" : "auto"}
           onError={() => {
             if (!triedLocal) {
-              // Local file didn't exist, try remote
+              // Local WebP missing, try remote
               setTriedLocal(true);
             } else {
-              // Remote also failed, use stylized card
+              // Remote also failed, show stylized card
               setImgFailed(true);
             }
           }}
