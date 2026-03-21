@@ -41,3 +41,5 @@ bun.lockb
 /public/characters/*.jpg
 /public/characters/*.png
 /public/characters/*.webp
+
+.vercel

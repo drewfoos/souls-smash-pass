@@ -13,6 +13,7 @@ import { UserProfile } from "./UserProfile";
 import Link from "next/link";
 import { BarChart3, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from "lucide-react";
 import { MobileMenu } from "./MobileMenu";
+import { SignInPrompt } from "./SignInPrompt";
 
 export function GameScreen() {
   const {
@@ -257,12 +258,6 @@ export function GameScreen() {
           </div>
         </div>
 
-        {/* Swipe hint on mobile — only when at frontier */}
-        {isAtFrontier && (
-          <p className="text-[10px] text-priscilla/30 sm:hidden">
-            swipe card or tap buttons
-          </p>
-        )}
 
         {/* What Others Chose */}
         <div className="w-full max-w-xl px-4">
@@ -274,6 +269,7 @@ export function GameScreen() {
         </div>
       </div>
 
+      <SignInPrompt />
       {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} defaultTab={profileTab} />}
     </div>

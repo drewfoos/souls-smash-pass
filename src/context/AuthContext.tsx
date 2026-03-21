@@ -56,10 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return result.user.displayName ?? "Tarnished";
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (process.env.NODE_ENV === "development") {
+        const e = err as { code?: string; message?: string };
         console.groupCollapsed("[Auth] signInWithPopup failed");
-        console.log("Code:", err?.code, "Message:", err?.message);
+        console.log("Code:", e.code, "Message:", e.message);
         console.groupEnd();
       }
 
@@ -73,9 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       await signOut(auth);
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (process.env.NODE_ENV === "development") {
-        console.error("[Auth] signOut failed:", err?.code, err?.message);
+        const e = err as { code?: string; message?: string };
+        console.error("[Auth] signOut failed:", e.code, e.message);
       }
       throw err;
     }
