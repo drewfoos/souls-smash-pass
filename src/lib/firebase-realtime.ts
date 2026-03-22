@@ -46,7 +46,8 @@ export function useCharacterVotes(characterId: string | null): { votes: VotePair
 
     const unsubscribe = onValue(voteRef, (snapshot) => {
       const raw = snapshot.val();
-      setVotes({ smash: raw?.smash ?? 0, pass: raw?.pass ?? 0 });
+      // Clamp to 0 — admin resets or race conditions can briefly create negatives
+      setVotes({ smash: Math.max(0, raw?.smash ?? 0), pass: Math.max(0, raw?.pass ?? 0) });
     });
 
     return unsubscribe;
@@ -78,7 +79,11 @@ export function useAllVotes(): { allVotes: AllVotesMap; loading: boolean } {
       // so callers can look up by the same IDs used in the characters array.
       const remapped: AllVotesMap = {};
       for (const [key, val] of Object.entries(raw)) {
-        remapped[unsanitizeFirebaseKey(key)] = val;
+        // Clamp to 0 — admin resets or race conditions can briefly create negatives
+        remapped[unsanitizeFirebaseKey(key)] = {
+          smash: Math.max(0, val?.smash ?? 0),
+          pass: Math.max(0, val?.pass ?? 0),
+        };
       }
       setAllVotes(remapped);
       setLoading(false);

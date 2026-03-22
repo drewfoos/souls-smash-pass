@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useAllVotes } from "@/lib/firebase-realtime";
 import { characters, type Character, type CharacterType } from "@/data/characters";
 import { getFirebaseAuth } from "@/lib/firebase";
-import { buildUserStats } from "@/lib/firebase-user";
+
 import { safePhotoURL } from "@/lib/validate-url";
 
 // ---------------------------------------------------------------------------
@@ -176,31 +176,31 @@ export function AdminDashboard() {
         return res.json();
       })
       .then((data) => {
-        const raw = (data.users ?? {}) as Record<string, {
+        const usersArr = (data.users ?? []) as Array<{
+          uid: string;
           displayName?: string;
           photoURL?: string;
           currentId?: number;
           lastPlayed?: number;
           lastReset?: number;
-          votes?: Record<string, "smash" | "pass">;
+          smashCount?: number;
+          passCount?: number;
+          totalVotes?: number;
+          smashRate?: number;
         }>;
 
-        const rows: UserRow[] = Object.entries(raw).map(([uid, d]) => {
-          const votes = d.votes ?? {};
-          const stats = buildUserStats(votes);
-          return {
-            uid,
-            displayName: d.displayName ?? "Tarnished",
-            photoURL: d.photoURL ?? null,
-            currentId: d.currentId ?? 0,
-            lastPlayed: d.lastPlayed ?? 0,
-            lastReset: d.lastReset,
-            totalVotes: stats.total,
-            smashCount: stats.smashed.length,
-            passCount: stats.passed.length,
-            smashRate: stats.smashPercent,
-          };
-        });
+        const rows: UserRow[] = usersArr.map((d) => ({
+          uid: d.uid,
+          displayName: d.displayName ?? "Tarnished",
+          photoURL: d.photoURL ?? null,
+          currentId: d.currentId ?? 0,
+          lastPlayed: d.lastPlayed ?? 0,
+          lastReset: d.lastReset,
+          totalVotes: d.totalVotes ?? 0,
+          smashCount: d.smashCount ?? 0,
+          passCount: d.passCount ?? 0,
+          smashRate: d.smashRate ?? 0,
+        }));
         setUsers(rows);
       })
       .catch((err) => console.error("Failed to fetch users:", err))
@@ -273,6 +273,60 @@ export function AdminDashboard() {
     () => [...withVotes].filter((r) => r.total >= 5).sort((a, b) => Math.abs(a.smashRate - 50) - Math.abs(b.smashRate - 50)).slice(0, 5),
     [withVotes]
   );
+
+  // Admin action state
+  const [resetAllLoading, setResetAllLoading] = useState(false);
+  const [resetAllConfirm, setResetAllConfirm] = useState(false);
+  const [resetUserLoading, setResetUserLoading] = useState<string | null>(null);
+  const [resetUserConfirm, setResetUserConfirm] = useState<string | null>(null);
+
+  // ── Admin actions ───────────────────────────────────────────────────
+  const handleResetAllVotes = useCallback(async () => {
+    if (!resetAllConfirm) { setResetAllConfirm(true); return; }
+    setResetAllLoading(true);
+    try {
+      const token = await getToken();
+      const res = await fetch("/api/admin/reset-votes", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "RESET_ALL_VOTES" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert(data.message);
+      setResetAllConfirm(false);
+    } catch (err) {
+      alert(`Failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setResetAllLoading(false);
+    }
+  }, [resetAllConfirm, getToken]);
+
+  const handleResetUser = useCallback(async (uid: string) => {
+    if (resetUserConfirm !== uid) { setResetUserConfirm(uid); return; }
+    setResetUserLoading(uid);
+    try {
+      const token = await getToken();
+      const res = await fetch("/api/admin/reset-user", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, confirm: "RESET_USER" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert(data.message);
+      // Update local state
+      setUsers((prev) => prev.map((u) => u.uid === uid
+        ? { ...u, totalVotes: 0, smashCount: 0, passCount: 0, smashRate: 0, currentId: 0, lastReset: Date.now() }
+        : u
+      ));
+      setResetUserConfirm(null);
+    } catch (err) {
+      alert(`Failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setResetUserLoading(null);
+    }
+  }, [resetUserConfirm, getToken]);
 
   // ── Sort helpers ──────────────────────────────────────────────────────
   function handleCharSort(key: SortKey) {
@@ -546,6 +600,22 @@ export function AdminDashboard() {
                                   <div className="text-ash/50">{fmtDate(u.lastReset)}</div>
                                 </div>
                               )}
+                              <div>
+                                <div className="text-xs text-ash/40 uppercase tracking-wider mb-1">Actions</div>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleResetUser(u.uid); }}
+                                  disabled={resetUserLoading === u.uid}
+                                  className={`text-xs font-semibold px-3 py-1.5 rounded border transition-all ${
+                                    resetUserConfirm === u.uid
+                                      ? "bg-pass/20 text-pass border-pass/50 hover:bg-pass/30"
+                                      : "bg-dark-700 text-ash/60 border-dark-500 hover:text-pass hover:border-pass/40"
+                                  } disabled:opacity-50`}
+                                >
+                                  {resetUserLoading === u.uid ? "Resetting…"
+                                    : resetUserConfirm === u.uid ? "Click again to confirm"
+                                    : "Reset User Data"}
+                                </button>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -651,12 +721,45 @@ export function AdminDashboard() {
           </div>
         </section>
 
+        {/* ── Danger zone ──────────────────────────────────────────────── */}
+        <section className="bg-dark-800/40 border border-pass/20 rounded-lg p-6">
+          <h2 className="font-cinzel text-pass text-xs uppercase tracking-widest mb-4">⚠ Danger Zone</h2>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <h3 className="text-sm font-semibold text-priscilla/80">Reset All Votes</h3>
+              <p className="text-xs text-ash/50 mt-0.5">
+                Wipes all aggregate vote counts and anonymous session data. User vote histories are NOT affected.
+              </p>
+            </div>
+            <button
+              onClick={handleResetAllVotes}
+              disabled={resetAllLoading}
+              className={`text-sm font-bold px-5 py-2 rounded-lg border transition-all shrink-0 ${
+                resetAllConfirm
+                  ? "bg-pass/20 text-pass border-pass/50 hover:bg-pass/30 animate-pulse"
+                  : "bg-dark-700 text-pass/70 border-pass/30 hover:bg-pass/10 hover:border-pass/50"
+              } disabled:opacity-50`}
+            >
+              {resetAllLoading ? "Resetting…" : resetAllConfirm ? "Click again to confirm" : "Reset All Votes"}
+            </button>
+            {resetAllConfirm && (
+              <button
+                onClick={() => setResetAllConfirm(false)}
+                className="text-xs text-ash/50 hover:text-priscilla transition-colors"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </section>
+
         {/* ── Security footer ────────────────────────────────────────────── */}
         <section className="bg-dark-800/40 border border-dark-600/50 rounded-lg p-4 text-xs text-ash/40 space-y-1">
           <p className="font-semibold text-ash/60 uppercase tracking-wider mb-1">Security</p>
           <p>• Access restricted to admin email — verified server-side via Firebase Admin SDK token verification</p>
           <p>• User data fetched via server API route — no client-side database rule needed</p>
-          <p>• User writes are still owner-only — admin cannot modify user data from this dashboard</p>
+          <p>• Admin can reset user data and global votes — all destructive actions require double-click confirmation</p>
+          <p>• User resets archive votes to /deleted before wiping — reversible via Firebase console</p>
           <p>• Admin email is never exposed to the client bundle</p>
         </section>
 

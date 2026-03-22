@@ -31,6 +31,7 @@ import {
   type RunConfig,
 } from "@/lib/firebase-user";
 import { VoteQueue, type PendingBatch } from "@/lib/vote-queue";
+import { generateIdempotencyKey } from "@/lib/idempotency-key";
 import toast from "react-hot-toast";
 
 export type SwipeAction = "smash" | "pass";
@@ -811,6 +812,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         // state and the local-ahead branch never runs.
         const sendAnonSeparately = unsyncedAnon.length > 0 && fbCurrentId > localCurrentIndex;
         if (sendAnonSeparately) {
+          const idemKey = generateIdempotencyKey();
           getIdToken(user)
             .then((token) =>
               fetch("/api/vote", {
@@ -818,6 +820,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 headers: {
                   "Content-Type": "application/json",
                   "Authorization": `Bearer ${token}`,
+                  "Idempotency-Key": idemKey,
                 },
                 body: JSON.stringify({
                   votes: unsyncedAnon.map(([characterId, action]) => ({ characterId, action })),
@@ -852,6 +855,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 characterId: h.character.id,
                 action: h.action,
               }));
+              const idemKey = generateIdempotencyKey();
               getIdToken(user)
                 .then((token) =>
                   fetch("/api/vote", {
@@ -859,6 +863,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     headers: {
                       "Content-Type": "application/json",
                       "Authorization": `Bearer ${token}`,
+                      "Idempotency-Key": idemKey,
                     },
                     body: JSON.stringify({
                       votes: batchVotes,
@@ -957,7 +962,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const runConfig = batch.runConfig;
     const currentIndex = stateRef.current.currentIndex;
 
-    const reqHeaders: Record<string, string> = { "Content-Type": "application/json" };
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Idempotency-Key": generateIdempotencyKey(),
+    };
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
 

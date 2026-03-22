@@ -9,6 +9,11 @@ import { getAdminAuth } from "@/lib/firebase-admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/get-client-ip";
 import { getOrCreateAnonSession, attachSessionCookie } from "@/lib/anon-session";
+import {
+  isValidIdempotencyKey,
+  getIdempotentResponse,
+  setIdempotentResponse,
+} from "@/lib/idempotency";
 
 // ---------------------------------------------------------------------------
 // Batch size limits
@@ -26,6 +31,10 @@ const AUTH_MAX_BATCH = 300;
 
 /** Absolute ceiling for currentIndex — no deck can be larger than this. */
 const MAX_CURRENT_INDEX = 1000;
+
+/** Max request body size in bytes. AUTH_MAX_BATCH=300 votes × ~80 bytes each ≈ 24KB.
+ *  64KB gives plenty of headroom for runConfig etc. while blocking abuse payloads. */
+const MAX_BODY_BYTES = 64 * 1024;
 
 // Allowed vote actions — anything else is rejected
 const VALID_ACTIONS = new Set(["smash", "pass"]);
@@ -86,6 +95,34 @@ export async function POST(request: Request) {
         { error: "Content-Type must be application/json" },
         { status: 415 }
       );
+    }
+
+    // ── 2b. Body size guard ────────────────────────────────────────────────
+    // Reject obviously oversized payloads before reading the body.
+    const contentLength = request.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > MAX_BODY_BYTES) {
+      return NextResponse.json(
+        { error: "Request body too large" },
+        { status: 413 }
+      );
+    }
+
+    // ── 2c. Idempotency key ────────────────────────────────────────────────
+    // If the client sends an Idempotency-Key header and we've already
+    // processed it (within this serverless instance), return the cached
+    // response immediately — no DB reads, no writes, no rate-limit cost.
+    const idempotencyKey = request.headers.get("idempotency-key");
+    if (idempotencyKey) {
+      if (!isValidIdempotencyKey(idempotencyKey)) {
+        return NextResponse.json(
+          { error: "Invalid Idempotency-Key format" },
+          { status: 400 }
+        );
+      }
+      const cached = getIdempotentResponse(idempotencyKey);
+      if (cached) {
+        return reply(NextResponse.json(cached.body, { status: cached.status }));
+      }
     }
 
     // ── 3. Auth check — must happen before rate limiting ────────────────────
@@ -258,9 +295,15 @@ export async function POST(request: Request) {
     const uniqueIds = validatedVotes.map((v) => v.characterId);
     const voteCounts = await getMultipleCharacterVotes(uniqueIds);
 
-    return reply(
-      NextResponse.json({ recorded, remaining: limit.remaining, voteCounts })
-    );
+    const responseBody = { recorded, remaining: limit.remaining, voteCounts };
+
+    // Cache successful response so retries with the same idempotency key
+    // get an instant reply without hitting the database again.
+    if (idempotencyKey) {
+      setIdempotentResponse(idempotencyKey, responseBody, 200);
+    }
+
+    return reply(NextResponse.json(responseBody));
   } catch (err) {
     console.error("[/api/vote]", err);
     // Use reply() so the session cookie is still set on errors — otherwise
@@ -299,10 +342,11 @@ function parseRunConfig(
   };
 }
 
-/** Returns a string[] if input is an array of strings, otherwise null. */
-function parseStringArray(val: unknown): string[] | null {
+/** Returns a string[] if input is a small array of strings, otherwise null. */
+function parseStringArray(val: unknown, maxLength = 50): string[] | null {
   if (!Array.isArray(val)) return null;
+  if (val.length > maxLength) return null;
   // Reject if any element is not a string — don't silently filter
-  if (!val.every((v): v is string => typeof v === "string")) return null;
+  if (!val.every((v): v is string => typeof v === "string" && v.length <= 100)) return null;
   return val;
 }

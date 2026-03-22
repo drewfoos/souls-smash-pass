@@ -22,7 +22,9 @@ export function OthersChose({ character }: OthersChoseProps) {
   const cachedTotal = cached ? cached.smash + cached.pass : 0;
 
   // Pick the source with the higher total — that's the most up-to-date
-  const votes = cachedTotal >= realtimeTotal && cached ? cached : realtimeVotes;
+  const raw = cachedTotal >= realtimeTotal && cached ? cached : realtimeVotes;
+  // Clamp to 0 — race conditions during vote-switching can briefly go negative
+  const votes = { smash: Math.max(0, raw.smash), pass: Math.max(0, raw.pass) };
   const total = votes.smash + votes.pass;
 
   const typeColors = CHARACTER_TYPE_COLORS[character.type];

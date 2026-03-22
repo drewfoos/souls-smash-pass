@@ -55,18 +55,32 @@ export async function GET(request: Request) {
     const hasMore = uids.length > pageSize;
     const pageUids = hasMore ? uids.slice(0, pageSize) : uids;
 
-    // Return only safe metadata — strip full vote objects to avoid massive
-    // payloads and unnecessary data exposure.
+    // Return metadata + computed vote stats (not raw vote objects) to keep
+    // payloads small while giving the dashboard the numbers it needs.
     const users = pageUids.map((uid) => {
       const u = raw[uid];
+      const votes = (u?.votes ?? {}) as Record<string, string>;
+      let smashCount = 0;
+      let passCount = 0;
+      for (const [key, val] of Object.entries(votes)) {
+        if (key === "_lastSeen") continue;
+        if (val === "smash") smashCount++;
+        else if (val === "pass") passCount++;
+      }
       return {
         uid,
         displayName: u?.displayName ?? null,
         photoURL: u?.photoURL ?? null,
         isPublic: u?.isPublic ?? false,
         lastPlayed: u?.lastPlayed ?? null,
+        lastReset: u?.lastReset ?? null,
         currentId: u?.currentId ?? 0,
-        voteCount: u?.votes ? Object.keys(u.votes as object).length : 0,
+        smashCount,
+        passCount,
+        totalVotes: smashCount + passCount,
+        smashRate: smashCount + passCount > 0
+          ? Math.round((smashCount / (smashCount + passCount)) * 100)
+          : 0,
       };
     });
 

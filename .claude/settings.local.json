@@ -26,7 +26,8 @@
       "Bash(node:*)",
       "Bash(bunx --bun next build)",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(find /c/Users/drewf/Downloads/dev/souls-smash-or-pass -maxdepth 2 -name .env* -type f)"
     ]
   }
 }

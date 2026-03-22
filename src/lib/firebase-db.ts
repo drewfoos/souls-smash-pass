@@ -309,8 +309,8 @@ export async function getCharacterVotes(characterId: string): Promise<VoteData> 
   const snap = await db.ref(`votes/${sanitizeFirebaseKey(characterId)}`).get();
   const data = snap.val() as VoteData | null;
   return {
-    smash: data?.smash ?? 0,
-    pass: data?.pass ?? 0,
+    smash: Math.max(0, data?.smash ?? 0),
+    pass: Math.max(0, data?.pass ?? 0),
   };
 }
 
@@ -334,7 +334,7 @@ export async function getMultipleCharacterVotes(
       const key = sanitizeFirebaseKey(id);
       const snap = await db.ref(`votes/${key}`).get();
       const data = snap.val() as VoteData | null;
-      result[id] = { smash: data?.smash ?? 0, pass: data?.pass ?? 0 };
+      result[id] = { smash: Math.max(0, data?.smash ?? 0), pass: Math.max(0, data?.pass ?? 0) };
     })
   );
   return result;
@@ -356,8 +356,8 @@ export async function getLeaderboard(
 
   const entries = Object.entries(all).map(([key, data]) => ({
     characterId: unsanitizeFirebaseKey(key),
-    smash: data?.smash ?? 0,
-    pass: data?.pass ?? 0,
+    smash: Math.max(0, data?.smash ?? 0),
+    pass: Math.max(0, data?.pass ?? 0),
   }));
 
   entries.sort((a, b) => b[sort] - a[sort]);

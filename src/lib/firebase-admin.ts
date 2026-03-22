@@ -30,11 +30,8 @@ function getOrInitApp(): App {
   const databaseURL = process.env.FIREBASE_DATABASE_URL;
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      "Missing Firebase Admin SDK credentials. " +
-        "Set FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, " +
-        "and FIREBASE_ADMIN_PRIVATE_KEY in .env.local."
-    );
+    console.error("[firebase-admin] Missing required credentials. Check .env.local.");
+    throw new Error("Server configuration error");
   }
 
   adminApp = initializeApp({

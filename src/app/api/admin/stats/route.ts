@@ -37,8 +37,8 @@ export async function GET(request: Request) {
 
     if (votes) {
       for (const [, counts] of Object.entries(votes)) {
-        const s = counts?.smash ?? 0;
-        const p = counts?.pass ?? 0;
+        const s = Math.max(0, counts?.smash ?? 0);
+        const p = Math.max(0, counts?.pass ?? 0);
         totalSmashes += s;
         totalPasses += p;
         if (s + p > 0) charactersWithVotes++;

@@ -17,8 +17,8 @@ export function Leaderboard({ onClose }: { onClose: () => void }) {
     return Object.entries(allVotes)
       .map(([characterId, data]) => ({
         characterId,
-        smash: data?.smash ?? 0,
-        pass:  data?.pass  ?? 0,
+        smash: Math.max(0, data?.smash ?? 0),
+        pass:  Math.max(0, data?.pass  ?? 0),
       }))
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, 25)
