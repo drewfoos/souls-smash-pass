@@ -134,31 +134,74 @@ Vercel auto-detects Next.js + Bun. Set the environment variables in your Vercel 
 
 ```
 src/
-├── app/                   # Next.js App Router pages & API routes
-│   ├── api/vote/          # Vote recording endpoint
-│   ├── api/leaderboard/   # Global leaderboard endpoint
-│   ├── api/admin/         # Admin dashboard endpoints
-│   ├── users/[uid]/       # Public profile pages (SSR)
-│   ├── admin/             # Admin dashboard
-│   ├── privacy/           # Privacy policy
-│   └── terms/             # Terms of service
-├── components/            # React components
-│   ├── CardStack.tsx      # Animated 3-card swipe stack
-│   ├── SwipeCard.tsx      # Individual draggable card
-│   ├── GameScreen.tsx     # Main gameplay layout
-│   ├── Leaderboard.tsx    # Real-time leaderboard modal
-│   ├── UserProfile.tsx    # Profile & settings modal
-│   └── FilterDropdown.tsx # Character type filter
+├── app/                       # Next.js App Router pages & API routes
+│   ├── api/
+│   │   ├── vote/              # Vote recording endpoint
+│   │   ├── leaderboard/       # Global leaderboard endpoint
+│   │   └── admin/             # Admin dashboard endpoints
+│   ├── users/[uid]/           # Public profile pages (SSR)
+│   ├── admin/                 # Admin dashboard
+│   ├── privacy/               # Privacy policy
+│   ├── terms/                 # Terms of service
+│   ├── layout.tsx             # Root layout
+│   ├── page.tsx               # Landing / game page
+│   ├── not-found.tsx          # 404 page
+│   ├── globals.css            # Global styles
+│   ├── manifest.ts            # PWA manifest
+│   ├── sitemap.ts             # Dynamic sitemap
+│   ├── robots.ts              # Robots.txt generation
+│   └── opengraph-image.tsx    # Dynamic OG image
+├── components/
+│   ├── CardStack.tsx          # Animated 3-card swipe stack
+│   ├── SwipeCard.tsx          # Individual draggable card
+│   ├── GameScreen.tsx         # Main gameplay layout
+│   ├── LandingScreen.tsx      # Landing / start screen
+│   ├── ResultsScreen.tsx      # End-of-run results
+│   ├── CelebrationScreen.tsx  # Celebration animations
+│   ├── Leaderboard.tsx        # Real-time leaderboard modal
+│   ├── UserProfile.tsx        # Profile & settings modal
+│   ├── StatsPanel.tsx         # Voting statistics panel
+│   ├── FilterDropdown.tsx     # Character type filter
+│   ├── FilterModal.tsx        # Full-screen filter modal
+│   ├── ActionButtons.tsx      # Smash / Pass buttons
+│   ├── CharacterImage.tsx     # Character image with fallback
+│   ├── LazyCharCard.tsx       # Lazy-loaded character card
+│   ├── ShareButtons.tsx       # Social sharing buttons
+│   ├── SignInButton.tsx       # Auth sign-in button
+│   ├── SignInPrompt.tsx       # Sign-in prompt overlay
+│   ├── OthersChose.tsx        # "Others chose…" display
+│   ├── MobileMenu.tsx         # Mobile navigation menu
+│   ├── ConsoleMessage.tsx     # Dev console easter egg
+│   └── Providers.tsx          # Context providers wrapper
 ├── context/
-│   ├── GameContext.tsx     # Game state, voting, navigation, filters
-│   └── AuthContext.tsx     # Firebase auth + anonymous session
+│   ├── GameContext.tsx        # Game state, voting, navigation, filters
+│   └── AuthContext.tsx        # Firebase auth + anonymous session
 ├── data/
-│   └── characters.ts      # 529 character definitions
-└── lib/                   # Firebase clients, rate limiting, utilities
+│   └── characters.ts         # 529 character definitions
+└── lib/                       # Firebase clients, rate limiting, utilities
+    ├── firebase.ts            # Firebase client init
+    ├── firebase-admin.ts      # Firebase Admin SDK
+    ├── firebase-db.ts         # Database helpers
+    ├── firebase-realtime.ts   # Realtime Database helpers
+    ├── firebase-user.ts       # User management
+    ├── firebase-key.ts        # Key utilities
+    ├── admin-auth.ts          # Admin authentication
+    ├── anon-session.ts        # Anonymous session handling
+    ├── rate-limit.ts          # API rate limiting
+    ├── vote-queue.ts          # Vote batching queue
+    ├── idempotency.ts         # Idempotent request handling
+    ├── idempotency-key.ts     # Idempotency key generation
+    ├── store.ts               # Local storage state
+    ├── get-client-ip.ts       # Client IP extraction
+    ├── validate-url.ts        # URL validation
+    └── utils.ts               # Shared utilities
 scripts/
-├── download-images.ts     # Wiki image scraper
-├── optimize-images.ts     # JPG → WebP converter
-└── reset-user.ts          # Firebase user reset tool
+├── download-images.ts         # Wiki image scraper
+├── download_images.py         # Python image scraper (alt)
+├── optimize-images.ts         # JPG → WebP converter
+├── reset-user.ts              # Firebase user reset tool
+├── cleanup-images.sh          # Image cleanup (Unix)
+└── cleanup-images.ps1         # Image cleanup (Windows)
 ```
 
 ## License
