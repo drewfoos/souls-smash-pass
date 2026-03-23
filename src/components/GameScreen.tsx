@@ -178,7 +178,7 @@ export function GameScreen() {
       {/* ── Main content ───────────────────────────────────────────────────── */}
 
       {/* Title — hidden in phone landscape */}
-      <h2
+      <h1
         className="game-title text-souls font-black text-center leading-none mt-4 mb-2 select-none landscape-short:mt-1 landscape-short:mb-0"
       >
         <span className="text-gold drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]">
@@ -187,7 +187,8 @@ export function GameScreen() {
         <span className="text-pass">
           SMASH
         </span>
-      </h2>
+        <span className="sr-only"> — Elden Ring Smash or Pass</span>
+      </h1>
 
       {/* Layout wrapper — vertical in portrait, horizontal in landscape */}
       <div className="flex flex-col landscape-short:flex-row landscape-short:items-center landscape-short:justify-center landscape-short:gap-6 items-center w-full flex-1 min-h-0 landscape-short:py-2 landscape-short:px-6">
