@@ -11,6 +11,8 @@ interface ShareButtonsProps {
   smashPercent: number;
   /** Public profile URL — if provided, included in the share text. */
   profileUrl?: string | null;
+  /** Called when an anonymous user tries to share — should trigger sign-in flow. */
+  onSignInRequired?: () => void;
   className?: string;
 }
 
@@ -42,9 +44,18 @@ function RedditIcon({ size = 16 }: { size?: number }) {
 }
 
 export function ShareButtons(props: ShareButtonsProps) {
-  const { className = "" } = props;
+  const { className = "", onSignInRequired } = props;
   const [copied, setCopied] = useState(false);
   const shareText = buildShareText(props);
+
+  /** If the user isn't signed in, intercept and prompt sign-in instead. */
+  const guardSignIn = (action: () => void) => () => {
+    if (onSignInRequired) {
+      onSignInRequired();
+      return;
+    }
+    action();
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareText).then(() => {
@@ -79,7 +90,7 @@ export function ShareButtons(props: ShareButtonsProps) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <button
-        onClick={handleTwitter}
+        onClick={guardSignIn(handleTwitter)}
         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold
           bg-dark-700/50 text-priscilla/60 border border-dark-600/30
           hover:text-priscilla/90 hover:border-dark-600/60 active:scale-95 transition-all"
@@ -90,7 +101,7 @@ export function ShareButtons(props: ShareButtonsProps) {
       </button>
 
       <button
-        onClick={handleReddit}
+        onClick={guardSignIn(handleReddit)}
         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold
           bg-dark-700/50 text-priscilla/60 border border-dark-600/30
           hover:text-[#FF4500] hover:border-[#FF4500]/30 active:scale-95 transition-all"
@@ -101,7 +112,7 @@ export function ShareButtons(props: ShareButtonsProps) {
       </button>
 
       <button
-        onClick={handleCopy}
+        onClick={guardSignIn(handleCopy)}
         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold
           bg-dark-700/50 text-priscilla/60 border border-dark-600/30
           hover:text-priscilla/90 hover:border-dark-600/60 active:scale-95 transition-all"
@@ -113,7 +124,7 @@ export function ShareButtons(props: ShareButtonsProps) {
 
       {canNativeShare && (
         <button
-          onClick={handleNativeShare}
+          onClick={guardSignIn(handleNativeShare)}
           className="sm:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold
             bg-dark-700/50 text-priscilla/60 border border-dark-600/30
             hover:text-priscilla/90 hover:border-dark-600/60 active:scale-95 transition-all"

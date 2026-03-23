@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useGame } from "@/context/GameContext";
+import { getUserData } from "@/lib/firebase-user";
 import { CHARACTER_TYPE_COLORS, CHARACTER_TYPE_LABELS, type CharacterType } from "@/data/characters";
 import {
   Heart,
@@ -11,31 +12,82 @@ import {
   Skull,
   BarChart3,
   Flame,
-  BookOpen,
+  LogIn,
+  Link2,
 } from "lucide-react";
-import { CharacterImage } from "./CharacterImage";
+import { LazyCharCard } from "./LazyCharCard";
 import { Leaderboard } from "./Leaderboard";
 import { UserProfile } from "./UserProfile";
 import { ShareButtons } from "./ShareButtons";
+import { SignInButton, type ProfileTab } from "./SignInButton";
 import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
 
 export function ResultsScreen() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const { user } = useAuth();
+  const [profileTab, setProfileTab] = useState<ProfileTab>("profile");
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
+  const { user, signInWithGoogle } = useAuth();
+  const [isPublic, setIsPublic] = useState(false);
   const { stats, startGame, state } = useGame();
+
+  useEffect(() => {
+    if (!user) return;
+    getUserData(user.uid).then((data) => {
+      if (data?.isPublic) setIsPublic(true);
+    });
+  }, [user]);
+
+  const handleShareSignIn = useCallback(() => {
+    setShowSignInModal(true);
+  }, []);
+
+  const handleSignIn = useCallback(() => {
+    setSigningIn(true);
+    signInWithGoogle()
+      .then((name) => {
+        toast(`Welcome, ${name}! Your profile is ready to share.`, { icon: "\uD83D\uDD25", duration: 3000 });
+        setShowSignInModal(false);
+      })
+      .catch(() => {
+        toast.error("Sign-in failed");
+      })
+      .finally(() => setSigningIn(false));
+  }, [signInWithGoogle]);
+
+  const handleShareProfile = useCallback(() => {
+    if (!user) {
+      setShowSignInModal(true);
+      return;
+    }
+    if (!isPublic) {
+      toast("Your profile is private. Enable public profile in Settings to share.", { icon: "\uD83D\uDD12", duration: 3500 });
+      return;
+    }
+    const url = `https://eldensmash.com/users/${user.uid}`;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success("Profile link copied!", { duration: 2000 });
+    }).catch(() => {
+      toast(`Your link: /users/${user.uid}`, { duration: 5000 });
+    });
+  }, [user, isPublic]);
   const total = stats.smashed + stats.passed;
   const smashPercent =
     total > 0 ? Math.round((stats.smashed / total) * 100) : 0;
 
   const smashedChars = stats.smashedCharacters;
 
-  // Group smashed characters by type
-  const smashedByType = smashedChars.reduce<Record<string, typeof smashedChars>>((acc, char) => {
-    if (!acc[char.type]) acc[char.type] = [];
-    acc[char.type].push(char);
-    return acc;
-  }, {});
+  // Group smashed characters by type — memoized to avoid recomputing on every render
+  const smashedByType = useMemo(
+    () => smashedChars.reduce<Record<string, typeof smashedChars>>((acc, char) => {
+      if (!acc[char.type]) acc[char.type] = [];
+      acc[char.type].push(char);
+      return acc;
+    }, {}),
+    [smashedChars],
+  );
 
   // Thirst level
   const thirstLevel =
@@ -50,7 +102,12 @@ export function ResultsScreen() {
             : "Heart of Stone";
 
   return (
-    <div className="min-h-dvh flex flex-col items-center py-8 px-4">
+    <div className="min-h-dvh flex flex-col items-center py-8 px-4 relative">
+      {/* Top-right sign-in / user dropdown */}
+      <div className="fixed top-3 right-3 z-40">
+        <SignInButton onOpenProfile={(tab) => { setProfileTab(tab); setShowProfile(true); }} />
+      </div>
+
       {/* Header */}
       <div className="text-center mb-10 animate-fade-in-up">
         <Flame
@@ -123,15 +180,50 @@ export function ResultsScreen() {
           passed={stats.passed}
           total={total}
           smashPercent={smashPercent}
-          profileUrl={user ? `https://eldensmash.com/users/${user.uid}` : null}
+          profileUrl={user && isPublic ? `https://eldensmash.com/users/${user.uid}` : null}
+          onSignInRequired={!user ? handleShareSignIn : undefined}
         />
+        <button
+          onClick={handleShareProfile}
+          className="flex items-center gap-1.5 text-xs text-ranni/60
+            hover:text-ranni transition-colors mt-1"
+        >
+          <Link2 size={11} />
+          Share Profile
+        </button>
+      </div>
+
+      {/* Actions */}
+      <div
+        className="flex flex-wrap justify-center gap-3 mb-10 animate-fade-in"
+        style={{ animationDelay: "0.35s" }}
+      >
+        <button
+          onClick={() => startGame(
+            state.selectedGames ?? undefined,
+            state.selectedTypes ?? undefined,
+            { replay: true },
+          )}
+          className="btn-primary px-8 py-3 text-sm flex items-center gap-2"
+        >
+          <RotateCcw size={16} />
+          <span className="relative z-10">Play Again</span>
+        </button>
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          className="px-8 py-3 rounded-xl border border-gold/25 text-gold/70
+            hover:bg-gold/8 hover:border-gold/40 transition-all flex items-center gap-2 text-sm"
+        >
+          <BarChart3 size={16} />
+          Leaderboard
+        </button>
       </div>
 
       {/* Smash list — grouped by type */}
       {smashedChars.length > 0 && (
         <div
           className="w-full max-w-2xl mb-8 animate-fade-in"
-          style={{ animationDelay: "0.35s" }}
+          style={{ animationDelay: "0.4s" }}
         >
           <h2 className="text-souls text-lg font-bold text-gold mb-4 flex items-center gap-2">
             <Trophy size={18} />
@@ -157,19 +249,7 @@ export function ResultsScreen() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {chars.map((char) => (
-                    <div
-                      key={char.id}
-                      className="card-dark p-2 flex items-center gap-2.5 hover:border-gold/15 transition-colors"
-                    >
-                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-dark-700/40">
-                        <CharacterImage character={char} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-medium text-priscilla/75 truncate">
-                          {char.name}
-                        </div>
-                      </div>
-                    </div>
+                    <LazyCharCard key={char.id} char={char} />
                   ))}
                 </div>
               </div>
@@ -182,7 +262,7 @@ export function ResultsScreen() {
       {stats.passedCharacters.length > 0 && (
         <div
           className="w-full max-w-2xl mb-10 animate-fade-in"
-          style={{ animationDelay: "0.45s" }}
+          style={{ animationDelay: "0.5s" }}
         >
           <h2 className="text-souls text-lg font-bold text-crimson-bright/70 mb-3 flex items-center gap-2">
             <Skull size={18} />
@@ -202,47 +282,50 @@ export function ResultsScreen() {
         </div>
       )}
 
-      {/* Actions */}
-      <div
-        className="flex flex-wrap justify-center gap-3 animate-fade-in"
-        style={{ animationDelay: "0.55s" }}
-      >
-        <button
-          onClick={() => startGame(
-            state.selectedGames ?? undefined,
-            state.selectedTypes ?? undefined,
-            { replay: true },
-          )}
-          className="btn-primary px-8 py-3 text-sm flex items-center gap-2"
-        >
-          <RotateCcw size={16} />
-          <span className="relative z-10">Play Again</span>
-        </button>
-        <button
-          onClick={() => setShowLeaderboard(true)}
-          className="px-8 py-3 rounded-xl border border-gold/25 text-gold/70
-            hover:bg-gold/8 hover:border-gold/40 transition-all flex items-center gap-2 text-sm"
-        >
-          <BarChart3 size={16} />
-          Leaderboard
-        </button>
-        {user && (
-          <button
-            onClick={() => setShowProfile(true)}
-            className="px-8 py-3 rounded-xl border border-ranni/25 text-ranni/70
-              hover:bg-ranni/8 hover:border-ranni/40 transition-all flex items-center gap-2 text-sm"
-          >
-            <BookOpen size={16} />
-            My History
-          </button>
-        )}
-      </div>
-
       {showLeaderboard && (
         <Leaderboard onClose={() => setShowLeaderboard(false)} />
       )}
       {showProfile && (
-        <UserProfile onClose={() => setShowProfile(false)} />
+        <UserProfile onClose={() => setShowProfile(false)} defaultTab={profileTab} />
+      )}
+
+      {/* Sign-in modal for anonymous share */}
+      {showSignInModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowSignInModal(false)}
+        >
+          <div
+            className="relative mx-4 w-full max-w-sm rounded-2xl bg-dark-800 border border-dark-600/50 p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowSignInModal(false)}
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-dark-700 border border-dark-600/50
+                flex items-center justify-center text-priscilla/50 hover:text-priscilla/80 active:scale-90 transition-all"
+              aria-label="Close"
+            >
+              <X size={14} />
+            </button>
+
+            <h3 className="text-souls text-gold font-bold text-lg mb-2">Share your profile</h3>
+            <p className="text-sm text-priscilla/50 mb-5 leading-relaxed">
+              Sign in to create your public profile and share your picks. Your progress will be saved automatically.
+            </p>
+
+            <button
+              onClick={handleSignIn}
+              disabled={signingIn}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold
+                bg-ranni/20 text-ranni border border-ranni/30
+                hover:bg-ranni/30 hover:border-ranni/50 active:scale-[0.97] transition-all
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LogIn size={16} />
+              {signingIn ? "Signing in..." : "Sign in with Google"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

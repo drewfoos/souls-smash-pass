@@ -63,11 +63,17 @@ export interface UserData {
 
 export async function saveUserProfile(user: User): Promise<void> {
   const db = getFirebaseDatabase();
-  await update(ref(db, `users/${user.uid}`), {
+  const snap = await get(ref(db, `users/${user.uid}/isPublic`));
+  const profileUpdate: Record<string, unknown> = {
     displayName: user.displayName ?? "Tarnished",
     photoURL: user.photoURL ?? null,
     lastPlayed: Date.now(),
-  });
+  };
+  // Default new users to public. Don't overwrite if they've already toggled it.
+  if (!snap.exists()) {
+    profileUpdate.isPublic = true;
+  }
+  await update(ref(db, `users/${user.uid}`), profileUpdate);
 }
 
 // saveUserHistory and saveUserPosition were removed — votes and position are

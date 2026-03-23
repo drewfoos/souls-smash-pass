@@ -27,7 +27,9 @@
       "Bash(bunx --bun next build)",
       "Bash(node_modules/.bin/tsc --noEmit)",
       "Bash(netstat -ano)",
-      "Bash(find /c/Users/drewf/Downloads/dev/souls-smash-or-pass -maxdepth 2 -name .env* -type f)"
+      "Bash(find /c/Users/drewf/Downloads/dev/souls-smash-or-pass -maxdepth 2 -name .env* -type f)",
+      "Bash(wc -l /c/Users/drewf/Downloads/dev/souls-smash-or-pass/src/components/*.tsx)",
+      "Bash(find /c/Users/drewf/Downloads/dev/souls-smash-or-pass/src -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.jsx -o -name *.js \\\\\\))"
     ]
   }
 }

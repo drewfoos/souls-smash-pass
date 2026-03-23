@@ -9,7 +9,7 @@ import {
   CHARACTER_TYPE_LABELS,
   type CharacterType,
 } from "@/data/characters";
-import { CharacterImage } from "./CharacterImage";
+import { LazyCharCard } from "./LazyCharCard";
 import { ShareButtons } from "./ShareButtons";
 import {
   X,
@@ -359,8 +359,22 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
                         passed={stats.passed.length}
                         total={stats.total}
                         smashPercent={stats.smashPercent}
-                        profileUrl={user ? `https://eldensmash.com/users/${user.uid}` : null}
+                        profileUrl={user && isPublic ? `https://eldensmash.com/users/${user.uid}` : null}
                       />
+                      <button
+                        onClick={() => {
+                          if (!isPublic) {
+                            toast("Your profile is private. Enable public profile in Settings to share.", { icon: "🔒", duration: 3500 });
+                            return;
+                          }
+                          handleCopyLink();
+                        }}
+                        className="flex items-center gap-1.5 text-xs text-ranni/60
+                          hover:text-ranni transition-colors mt-1"
+                      >
+                        {isPublic ? <Link2 size={11} /> : <Lock size={11} />}
+                        Share Profile
+                      </button>
                     </div>
                   )}
 
@@ -390,19 +404,7 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {chars.map((char) => (
-                                <div
-                                  key={char.id}
-                                  className="card-dark p-2 flex items-center gap-2.5 hover:border-gold/15 transition-colors"
-                                >
-                                  <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-dark-700/40">
-                                    <CharacterImage character={char} />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="text-xs font-medium text-priscilla/75 truncate">
-                                      {char.name}
-                                    </div>
-                                  </div>
-                                </div>
+                                <LazyCharCard key={char.id} char={char} imgSize="w-9 h-9" />
                               ))}
                             </div>
                           </div>
