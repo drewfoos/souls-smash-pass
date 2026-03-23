@@ -206,7 +206,7 @@ scripts/
 
 ## License
 
-MIT
+[MIT](LICENSE)
 
 ---
 
