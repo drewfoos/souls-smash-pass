@@ -75,9 +75,9 @@ export default function OgImage() {
           }}
         >
           <span>500+ Characters</span>
-          <span style={{ color: "rgba(240,192,64,0.4)" }}>✦</span>
+          <span style={{ color: "rgba(240,192,64,0.4)" }}>·</span>
           <span>Ranni · Malenia · Radahn</span>
-          <span style={{ color: "rgba(240,192,64,0.4)" }}>✦</span>
+          <span style={{ color: "rgba(240,192,64,0.4)" }}>·</span>
           <span>Touch Grace</span>
         </div>
       </div>
