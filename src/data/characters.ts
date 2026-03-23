@@ -10,10 +10,6 @@ export interface Character {
   description: string;
 }
 
-export const GAME_LABELS: Record<Game, string> = {
-  ER: "Elden Ring",
-};
-
 export const GAME_COLORS: Record<Game, string> = {
   ER: "#daa520",
 };
@@ -4284,15 +4280,6 @@ export const characters: Character[] = [
   },
 ];
 
-export function shuffleCharacters(chars: Character[]): Character[] {
-  const shuffled = [...chars];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
 // ---------------------------------------------------------------------------
 // Seeded, deterministic shuffle (Mulberry32 PRNG + Fisher-Yates)
 // Identical seed → identical order, so the deck is stable across refreshes.
@@ -4332,10 +4319,6 @@ export function getWeeklySeed(): number {
 export const characterById = new Map<string, Character>(
   characters.map((c) => [c.id, c])
 );
-
-export function getCharactersByGame(game: Game): Character[] {
-  return characters.filter((c) => c.game === game);
-}
 
 export const CHARACTER_TYPE_LABELS: Record<CharacterType, string> = {
   boss: "Bosses",

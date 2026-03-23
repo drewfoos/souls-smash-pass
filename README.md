@@ -155,14 +155,11 @@ src/
 │   ├── CardStack.tsx          # Animated 3-card swipe stack
 │   ├── SwipeCard.tsx          # Individual draggable card
 │   ├── GameScreen.tsx         # Main gameplay layout
-│   ├── LandingScreen.tsx      # Landing / start screen
 │   ├── ResultsScreen.tsx      # End-of-run results
 │   ├── CelebrationScreen.tsx  # Celebration animations
 │   ├── Leaderboard.tsx        # Real-time leaderboard modal
 │   ├── UserProfile.tsx        # Profile & settings modal
-│   ├── StatsPanel.tsx         # Voting statistics panel
 │   ├── FilterDropdown.tsx     # Character type filter
-│   ├── FilterModal.tsx        # Full-screen filter modal
 │   ├── ActionButtons.tsx      # Smash / Pass buttons
 │   ├── CharacterImage.tsx     # Character image with fallback
 │   ├── LazyCharCard.tsx       # Lazy-loaded character card
@@ -191,17 +188,12 @@ src/
     ├── vote-queue.ts          # Vote batching queue
     ├── idempotency.ts         # Idempotent request handling
     ├── idempotency-key.ts     # Idempotency key generation
-    ├── store.ts               # Local storage state
     ├── get-client-ip.ts       # Client IP extraction
-    ├── validate-url.ts        # URL validation
-    └── utils.ts               # Shared utilities
+    └── validate-url.ts        # URL validation
 scripts/
 ├── download-images.ts         # Wiki image scraper
-├── download_images.py         # Python image scraper (alt)
 ├── optimize-images.ts         # JPG → WebP converter
-├── reset-user.ts              # Firebase user reset tool
-├── cleanup-images.sh          # Image cleanup (Unix)
-└── cleanup-images.ps1         # Image cleanup (Windows)
+└── reset-user.ts              # Firebase user reset tool
 ```
 
 ## License

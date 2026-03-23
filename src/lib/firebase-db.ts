@@ -9,9 +9,7 @@
 //     Reads /anonVotes/{sessionKey} to find already-submitted votes, skips
 //     duplicates. First-time votes are written atomically to /votes (aggregate)
 //     and /anonVotes/{sessionKey}/{charId} (session record).
-//   • Anonymous users (legacy / no session) → recordAnonymousVotes()
-//     Increment-only, no dedup. Kept for backward compat; route.ts now always
-//     uses the session-aware path for anonymous users.
+//   • Anonymous users use the session-aware recordAnonymousSessionVotes() path.
 //   • Authenticated users → recordAuthenticatedVotes()
 //     Server reads /users/{uid}/votes for trusted previous state, then
 //     computes correct deltas. Client-supplied previousVotes are NEVER used.
@@ -48,37 +46,6 @@ interface RunConfig {
   seed: number;
   selectedGames?: string[] | null;
   selectedTypes?: string[] | null;
-}
-
-// ---------------------------------------------------------------------------
-// recordAnonymousVotes
-//
-// For unauthenticated users: increment-only. Each vote adds +1 to the chosen
-// action. No vote-switching, no decrements. Simple and tamper-proof — the
-// worst an attacker can do is inflate counts by +1 per request (which rate
-// limiting already constrains).
-// ---------------------------------------------------------------------------
-
-export async function recordAnonymousVotes(
-  batch: Array<{ characterId: string; action: "smash" | "pass" }>
-): Promise<number> {
-  if (batch.length === 0) return 0;
-
-  const update: Record<string, unknown> = {};
-  let count = 0;
-
-  for (const { characterId, action } of batch) {
-    if (!isValidCharacterId(characterId)) continue;
-    const key = sanitizeFirebaseKey(characterId);
-    update[`${key}/${action}`] = ServerValue.increment(1);
-    count++;
-  }
-
-  if (count === 0) return 0;
-
-  const db = getAdminDb();
-  await db.ref("votes").update(update);
-  return count;
 }
 
 // ---------------------------------------------------------------------------

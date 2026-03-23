@@ -385,7 +385,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 // Context value shape
 // ---------------------------------------------------------------------------
 
-export type VoteCounts = Record<string, { smash: number; pass: number }>;
+type VoteCounts = Record<string, { smash: number; pass: number }>;
 
 interface GameContextValue {
   state: GameState;
