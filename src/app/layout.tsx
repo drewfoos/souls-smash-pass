@@ -78,7 +78,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   name: "Elden Smash",
-  url: "https://eldensmash.com",
+  url: SITE_URL,
   description:
     "Play Elden Ring Smash or Pass and vote on 500+ characters including bosses, NPCs, enemies, summons, and wildlife. See community results from thousands of votes.",
   applicationCategory: "GameApplication",
@@ -107,7 +107,9 @@ export default function RootLayout({
       <body className="min-h-dvh antialiased">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
         />
         {/* Subtle animated fog */}
         <div className="fixed inset-0 pointer-events-none z-0">
