@@ -37,6 +37,9 @@ next-env.d.ts
 # bun
 bun.lockb
 
+# claude code
+.claude/settings.local.json
+
 # downloaded character images — raw sources (run `bun run download-images` to populate)
 /public/characters/*.jpg
 /public/characters/*.png

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cinzel, Inter } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 import { Providers } from "@/components/Providers";
 import { ConsoleMessage } from "@/components/ConsoleMessage";
 
@@ -81,6 +82,7 @@ export default function RootLayout({
         <div className="relative z-10">
           <ConsoleMessage />
           <Providers>{children}</Providers>
+          <Analytics />
         </div>
       </body>
     </html>
