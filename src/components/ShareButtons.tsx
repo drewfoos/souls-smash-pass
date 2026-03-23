@@ -1,6 +1,6 @@
 "use client";
 
-import { Share2, Copy, Check } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -77,16 +77,6 @@ export function ShareButtons(props: ShareButtonsProps) {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const canNativeShare = typeof navigator !== "undefined" && !!navigator.share;
-
-  const handleNativeShare = () => {
-    navigator.share({
-      title: "Elden Smash",
-      text: shareText,
-      url: props.profileUrl ?? "https://eldensmash.com",
-    }).catch(() => { /* user cancelled */ });
-  };
-
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <button
@@ -122,17 +112,6 @@ export function ShareButtons(props: ShareButtonsProps) {
         <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
       </button>
 
-      {canNativeShare && (
-        <button
-          onClick={guardSignIn(handleNativeShare)}
-          className="sm:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold
-            bg-dark-700/50 text-priscilla/60 border border-dark-600/30
-            hover:text-priscilla/90 hover:border-dark-600/60 active:scale-95 transition-all"
-          aria-label="Share"
-        >
-          <Share2 size={14} />
-        </button>
-      )}
     </div>
   );
 }
