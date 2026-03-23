@@ -93,6 +93,9 @@ export default async function PublicUserProfilePage({
           YOU DIED
         </p>
         <p className="text-ash text-sm mb-2">Profile not found or set to private.</p>
+        <p className="text-ash/40 text-xs mb-2">
+          If this is your profile, you can make it public in your profile settings.
+        </p>
         <Link
           href="/"
           className="mt-6 text-sm text-ranni hover:text-ranni/70 underline underline-offset-4 transition-colors"

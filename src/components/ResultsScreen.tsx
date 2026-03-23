@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useGame } from "@/context/GameContext";
-import { getUserData } from "@/lib/firebase-user";
+import { getUserData, setUserPublic } from "@/lib/firebase-user";
 import { CHARACTER_TYPE_COLORS, CHARACTER_TYPE_LABELS, type CharacterType } from "@/data/characters";
 import {
   Heart,
@@ -14,6 +14,7 @@ import {
   Flame,
   LogIn,
   Link2,
+  Globe,
 } from "lucide-react";
 import { LazyCharCard } from "./LazyCharCard";
 import { Leaderboard } from "./Leaderboard";
@@ -28,17 +29,31 @@ export function ResultsScreen() {
   const [showProfile, setShowProfile] = useState(false);
   const [profileTab, setProfileTab] = useState<ProfileTab>("profile");
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showMakePublicModal, setShowMakePublicModal] = useState(false);
+  const [togglingPublic, setTogglingPublic] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const { user, signInWithGoogle } = useAuth();
   const [isPublic, setIsPublic] = useState(false);
   const { stats, startGame, state } = useGame();
 
-  useEffect(() => {
-    if (!user) return;
+  const refreshIsPublic = useCallback(() => {
+    if (!user) {
+      setIsPublic(false);
+      return;
+    }
     getUserData(user.uid).then((data) => {
-      if (data?.isPublic) setIsPublic(true);
+      if (!data) {
+        // New user — saveUserProfile will set isPublic:true momentarily.
+        setIsPublic(true);
+      } else {
+        setIsPublic(data.isPublic === true);
+      }
     });
   }, [user]);
+
+  useEffect(() => {
+    refreshIsPublic();
+  }, [refreshIsPublic]);
 
   const handleShareSignIn = useCallback(() => {
     setShowSignInModal(true);
@@ -63,7 +78,7 @@ export function ResultsScreen() {
       return;
     }
     if (!isPublic) {
-      toast("Your profile is private. Enable public profile in Settings to share.", { icon: "\uD83D\uDD12", duration: 3500 });
+      setShowMakePublicModal(true);
       return;
     }
     const url = `https://eldensmash.com/users/${user.uid}`;
@@ -73,6 +88,26 @@ export function ResultsScreen() {
       toast(`Your link: /users/${user.uid}`, { duration: 5000 });
     });
   }, [user, isPublic]);
+
+  const handleMakePublic = useCallback(async () => {
+    if (!user) return;
+    try {
+      setTogglingPublic(true);
+      await setUserPublic(user, true);
+      setIsPublic(true);
+      setShowMakePublicModal(false);
+      const url = `https://eldensmash.com/users/${user.uid}`;
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success("Profile is public! Link copied.", { duration: 3000 });
+      }).catch(() => {
+        toast.success("Profile is now public!", { duration: 3000 });
+      });
+    } catch {
+      toast.error("Failed to update profile");
+    } finally {
+      setTogglingPublic(false);
+    }
+  }, [user]);
   const total = stats.smashed + stats.passed;
   const smashPercent =
     total > 0 ? Math.round((stats.smashed / total) * 100) : 0;
@@ -286,7 +321,7 @@ export function ResultsScreen() {
         <Leaderboard onClose={() => setShowLeaderboard(false)} />
       )}
       {showProfile && (
-        <UserProfile onClose={() => setShowProfile(false)} defaultTab={profileTab} />
+        <UserProfile onClose={() => { setShowProfile(false); refreshIsPublic(); }} defaultTab={profileTab} onPublicChange={setIsPublic} />
       )}
 
       {/* Sign-in modal for anonymous share */}
@@ -324,6 +359,54 @@ export function ResultsScreen() {
               <LogIn size={16} />
               {signingIn ? "Signing in..." : "Sign in with Google"}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Make profile public modal */}
+      {showMakePublicModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowMakePublicModal(false)}
+        >
+          <div
+            className="relative mx-4 w-full max-w-sm rounded-2xl bg-dark-800 border border-dark-600/50 p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowMakePublicModal(false)}
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-dark-700 border border-dark-600/50
+                flex items-center justify-center text-priscilla/50 hover:text-priscilla/80 active:scale-90 transition-all"
+              aria-label="Close"
+            >
+              <X size={14} />
+            </button>
+
+            <h3 className="text-souls text-gold font-bold text-lg mb-2">Make profile public?</h3>
+            <p className="text-sm text-priscilla/50 mb-5 leading-relaxed">
+              Your profile is currently private. Make it public so anyone with your link can see your smash picks.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowMakePublicModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-dark-600/50 text-sm text-priscilla/50
+                  hover:text-priscilla/80 hover:border-dark-600 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMakePublic}
+                disabled={togglingPublic}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold
+                  bg-smash/20 text-smash border border-smash/30
+                  hover:bg-smash/30 hover:border-smash/50 active:scale-[0.97] transition-all
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Globe size={14} />
+                {togglingPublic ? "Enabling..." : "Make public"}
+              </button>
+            </div>
           </div>
         </div>
       )}

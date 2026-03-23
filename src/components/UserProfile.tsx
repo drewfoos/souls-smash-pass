@@ -34,12 +34,14 @@ interface UserProfileProps {
   onClose: () => void;
   /** Which tab to open on mount */
   defaultTab?: "profile" | "settings";
+  /** Called whenever the public/private toggle changes so parent can sync state */
+  onPublicChange?: (isPublic: boolean) => void;
 }
 
 type LoadState = "loading" | "empty" | "ready" | "unauthenticated";
 type Tab = "profile" | "settings";
 
-export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProps) {
+export function UserProfile({ onClose, defaultTab = "profile", onPublicChange }: UserProfileProps) {
   const { user, loading: authLoading, signInWithGoogle } = useAuth();
   const [tab, setTab] = useState<Tab>(defaultTab);
   const [loadState, setLoadState] = useState<LoadState>("loading");
@@ -130,6 +132,7 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
       const next = !isPublic;
       await setUserPublic(user, next);
       setIsPublic(next);
+      onPublicChange?.(next);
       if (next) {
         toast.success("Profile is now public — share your link!", { icon: "🔗", duration: 3500 });
       } else {
@@ -165,6 +168,26 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
       toast.error("Failed to save profile");
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const handleMakePublicAndCopy = async () => {
+    if (!user) return;
+    try {
+      setTogglingPublic(true);
+      await setUserPublic(user, true);
+      setIsPublic(true);
+      onPublicChange?.(true);
+      const url = `${window.location.origin}/users/${user.uid}`;
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success("Profile is public! Link copied.", { duration: 3000 });
+      }).catch(() => {
+        toast.success("Profile is now public!", { duration: 3000 });
+      });
+    } catch {
+      toast.error("Failed to update profile");
+    } finally {
+      setTogglingPublic(false);
     }
   };
 
@@ -364,7 +387,7 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
                       <button
                         onClick={() => {
                           if (!isPublic) {
-                            toast("Your profile is private. Enable public profile in Settings to share.", { icon: "🔒", duration: 3500 });
+                            handleMakePublicAndCopy();
                             return;
                           }
                           handleCopyLink();
@@ -372,8 +395,8 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
                         className="flex items-center gap-1.5 text-xs text-ranni/60
                           hover:text-ranni transition-colors mt-1"
                       >
-                        {isPublic ? <Link2 size={11} /> : <Lock size={11} />}
-                        Share Profile
+                        {isPublic ? <Link2 size={11} /> : <Globe size={11} />}
+                        {isPublic ? "Share Profile" : "Make Public & Share"}
                       </button>
                     </div>
                   )}
@@ -458,7 +481,7 @@ export function UserProfile({ onClose, defaultTab = "profile" }: UserProfileProp
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      maxLength={32}
+                      maxLength={50}
                       placeholder="Tarnished"
                       className="w-full bg-dark-700/50 border border-dark-600/60 rounded-lg px-3 py-2
                         text-sm text-priscilla/80 placeholder:text-ash/25
