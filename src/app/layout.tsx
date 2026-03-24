@@ -104,6 +104,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`dark ${cinzel.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://elden-smash-or-pass.firebaseapp.com" />
+      </head>
       <body className="min-h-dvh antialiased">
         <script
           type="application/ld+json"
