@@ -11,7 +11,7 @@ export function ActionButtons() {
     const entry = viewChar
       ? state.history.find((h) => h.character.id === viewChar.id)
       : undefined;
-    if (!entry) return <div className="h-[52px]" />;
+    if (!entry) return <div style={{ height: "calc(1.5em + 5dvh)" }} />;
 
     const isSmash = entry.action === "smash";
     return (

@@ -96,7 +96,12 @@ export function SwipeCard({
             ? { x: -500, rotate: -20, opacity: 0, transition: { duration: 0.4, ease: "easeIn" } }
             : { opacity: 0, transition: { duration: 0.2 } }
       }
-      transition={{ type: "spring", stiffness: 260, damping: 24 }}
+      transition={{
+        // Scale snaps instantly so the promoting card doesn't visibly "grow"
+        scale: { type: "tween", duration: 0.15 },
+        // Everything else uses a spring for natural feel
+        default: { type: "spring", stiffness: 260, damping: 24 },
+      }}
     >
       <motion.div
         className={`relative w-full h-full rounded-2xl overflow-hidden select-none ${

@@ -311,6 +311,25 @@ export async function getMultipleCharacterVotes(
 // getLeaderboard — top N characters sorted by smash or pass count
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// getTotalVotes — sum of all smash + pass votes across every character
+// ---------------------------------------------------------------------------
+
+export async function getTotalVotes(): Promise<number> {
+  const db = getAdminDb();
+  const snap = await db.ref("votes").get();
+  const all = snap.val() as VotesSnapshot | null;
+  if (!all) return 0;
+  return Object.values(all).reduce(
+    (sum, data) => sum + Math.max(0, data?.smash ?? 0) + Math.max(0, data?.pass ?? 0),
+    0
+  );
+}
+
+// ---------------------------------------------------------------------------
+// getLeaderboard — top N characters sorted by smash or pass count
+// ---------------------------------------------------------------------------
+
 export async function getLeaderboard(
   sort: "smash" | "pass" = "smash",
   limit = 25

@@ -5,13 +5,12 @@ import { useGame } from "@/context/GameContext";
 import { type CharacterType } from "@/data/characters";
 import { CardStack } from "./CardStack";
 import { ActionButtons } from "./ActionButtons";
-import { Leaderboard } from "./Leaderboard";
 import { FilterDropdown } from "./FilterDropdown";
 import { OthersChose } from "./OthersChose";
 import { SignInButton, type ProfileTab } from "./SignInButton";
 import { UserProfile } from "./UserProfile";
 import Link from "next/link";
-import { BarChart3, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from "lucide-react";
 import { MobileMenu } from "./MobileMenu";
 import { SignInPrompt } from "./SignInPrompt";
 
@@ -27,7 +26,6 @@ export function GameScreen() {
     navigateBack,
     navigateForward,
   } = useGame();
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [profileTab, setProfileTab] = useState<ProfileTab>("profile");
 
@@ -50,7 +48,7 @@ export function GameScreen() {
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
 
       // Disable all keybinds when a popup/modal is open
-      if (showLeaderboard || showProfile) return;
+      if (showProfile) return;
 
       if (!state.gameActive && !state.gameComplete) return;
 
@@ -86,7 +84,7 @@ export function GameScreen() {
         }
       }
     },
-    [swipe, currentCharacter, state.gameActive, state.gameComplete, isAtFrontier, navigateBack, navigateForward, showLeaderboard, showProfile]
+    [swipe, currentCharacter, state.gameActive, state.gameComplete, isAtFrontier, navigateBack, navigateForward, showProfile]
   );
 
   useEffect(() => {
@@ -121,7 +119,6 @@ export function GameScreen() {
 
       {/* Mobile hamburger menu — replaces all controls on small screens */}
       <MobileMenu
-        onOpenLeaderboard={() => setShowLeaderboard(true)}
         onOpenProfile={(tab) => { setProfileTab(tab); setShowProfile(true); }}
         currentTypes={state.viewFilter}
         onFilterApply={handleFilterApply}
@@ -135,17 +132,18 @@ export function GameScreen() {
         />
       </div>
 
-      {/* Controls — desktop only, hidden in phone landscape */}
+      {/* Nav links + sign-in — desktop only, hidden in phone landscape */}
       <div className="hidden md:flex landscape-short:!hidden pointer-events-none fixed right-0 top-0 z-20 flex-row items-center justify-end gap-2 px-4 py-2">
         <div className="pointer-events-auto flex items-center gap-2">
-          <button
-            onClick={() => setShowLeaderboard(true)}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-smash border border-smash/40
-              hover:bg-smash/10 hover:border-smash/60 transition-all flex items-center gap-1.5"
-          >
-            <BarChart3 size={13} />
-            LEADERBOARD
-          </button>
+          <Link href="/leaderboard" className="px-3 py-1.5 rounded-lg text-xs text-ash/50 hover:text-ash/80 hover:bg-dark-700/50 transition-all">
+            Leaderboard
+          </Link>
+          <Link href="/about" className="px-3 py-1.5 rounded-lg text-xs text-ash/50 hover:text-ash/80 hover:bg-dark-700/50 transition-all">
+            About
+          </Link>
+          <Link href="/faq" className="px-3 py-1.5 rounded-lg text-xs text-ash/50 hover:text-ash/80 hover:bg-dark-700/50 transition-all">
+            FAQ
+          </Link>
           <SignInButton onOpenProfile={(tab) => { setProfileTab(tab); setShowProfile(true); }} />
         </div>
       </div>
@@ -227,8 +225,8 @@ export function GameScreen() {
             </button>
           </div>
 
-          {/* Buttons */}
-          <div className="relative w-full landscape-short:w-auto flex items-center justify-center">
+          {/* Buttons — min-h prevents layout shift when switching voting/history mode */}
+          <div className="relative w-full landscape-short:w-auto flex items-center justify-center" style={{ minHeight: "calc(1.5em + 5dvh)" }}>
             <ActionButtons />
             {/* Keybinds — desktop only */}
             <div className="hidden lg:flex landscape-short:!hidden absolute right-0 top-1/2 -translate-y-1/2 flex-col gap-2.5 rounded-l-xl bg-dark-800/60 border border-r-0 border-dark-600/25 backdrop-blur-sm px-4 py-3.5">
@@ -268,7 +266,6 @@ export function GameScreen() {
       </div>
 
       <SignInPrompt />
-      {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} defaultTab={profileTab} />}
     </div>
   );

@@ -130,8 +130,8 @@
     letter-spacing: 0.1em;
     border: 4px solid;
     border-radius: 1.25rem;
-    width: 160px;
-    height: calc(1.5em + 5vh);
+    width: clamp(120px, 38vw, 160px);
+    height: calc(1.5em + 5dvh);
     padding: 0.25rem 1rem;
     background: transparent;
     cursor: pointer;

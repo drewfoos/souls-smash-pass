@@ -158,29 +158,32 @@ export function CharacterImage({ character, className = "", priority = false }: 
   const remoteSrc = character.imageUrl || null;
 
   const [triedLocal, setTriedLocal] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const imgSrc = !imgFailed ? (!triedLocal ? localWebp : remoteSrc) : null;
 
   if (imgSrc) {
     return (
       <div className={`w-full h-full relative ${className}`}>
-        {/* Stylized card as background/fallback — always rendered behind */}
-        {StylizedCard}
+        {/* Stylized fallback — only for swipe cards (priority) to prevent flash */}
+        {priority && !imgLoaded && StylizedCard}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgSrc}
           alt={character.name}
-          className="absolute inset-0 w-full h-full object-cover object-top z-10"
+          className={`absolute inset-0 w-full h-full object-cover object-top z-10 ${
+            priority && !imgLoaded ? "opacity-0" : ""
+          }`}
           fetchPriority={priority ? "high" : "auto"}
+          onLoad={() => setImgLoaded(true)}
           onError={() => {
             if (!triedLocal) {
-              // Local WebP missing, try remote
               setTriedLocal(true);
             } else {
-              // Remote also failed, show stylized card
               setImgFailed(true);
             }
           }}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          decoding={priority ? "sync" : "async"}
           draggable={false}
         />
       </div>

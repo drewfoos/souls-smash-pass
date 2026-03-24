@@ -81,8 +81,8 @@ export function SignInButton({ onOpenProfile }: SignInButtonProps) {
         onClick={handleSignIn}
         disabled={signingIn}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
-          text-priscilla/50 border border-dark-600/40
-          hover:text-priscilla/80 hover:border-dark-600/70 hover:bg-dark-700/30
+          text-smash/70 border border-smash/25
+          hover:text-smash hover:border-smash/50 hover:bg-smash/10
           disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         aria-label="Sign in with Google"
       >

@@ -15,6 +15,8 @@ import {
   Loader2,
   Shield,
   FileText,
+  Info,
+  HelpCircle,
 } from "lucide-react";
 import {
   type CharacterType,
@@ -36,14 +38,12 @@ const TYPE_IMAGES: Record<CharacterType, string> = {
 };
 
 interface MobileMenuProps {
-  onOpenLeaderboard: () => void;
   onOpenProfile: (tab: ProfileTab) => void;
   currentTypes: CharacterType[] | null;
   onFilterApply: (types?: CharacterType[]) => void;
 }
 
 export function MobileMenu({
-  onOpenLeaderboard,
   onOpenProfile,
   currentTypes,
   onFilterApply,
@@ -159,15 +159,34 @@ export function MobileMenu({
 
           {/* Actions */}
           <div className="py-1">
-            {/* Stats */}
-            <button
-              onClick={() => { setOpen(false); onOpenLeaderboard(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs text-smash font-semibold
-                hover:bg-dark-700/40 transition-all"
+            {/* Page links */}
+            <Link
+              href="/leaderboard"
+              onClick={() => setOpen(false)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs text-priscilla/60
+                hover:bg-dark-700/40 hover:text-priscilla/90 transition-all"
             >
               <BarChart3 size={14} />
               Leaderboard
-            </button>
+            </Link>
+            <Link
+              href="/about"
+              onClick={() => setOpen(false)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs text-priscilla/60
+                hover:bg-dark-700/40 hover:text-priscilla/90 transition-all"
+            >
+              <Info size={14} />
+              About
+            </Link>
+            <Link
+              href="/faq"
+              onClick={() => setOpen(false)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs text-priscilla/60
+                hover:bg-dark-700/40 hover:text-priscilla/90 transition-all"
+            >
+              <HelpCircle size={14} />
+              FAQ
+            </Link>
 
             {/* Profile / Settings (signed in only) */}
             {user && (

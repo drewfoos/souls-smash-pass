@@ -87,6 +87,12 @@ export function UserProfile({ onClose, defaultTab = "profile", onPublicChange }:
     }
   };
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -222,7 +228,7 @@ export function UserProfile({ onClose, defaultTab = "profile", onPublicChange }:
       <div className="absolute inset-0 bg-dark-900/80 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="relative w-full max-w-2xl max-h-[88vh] card-dark flex flex-col overflow-hidden shadow-2xl">
+      <div className="relative w-full max-w-2xl max-h-[88dvh] card-dark flex flex-col overflow-hidden shadow-2xl">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-dark-700/50 shrink-0">
@@ -638,7 +644,7 @@ export function UserProfile({ onClose, defaultTab = "profile", onPublicChange }:
 
       {/* ── Reset confirmation overlay ── */}
       {showResetConfirm && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center p-6 bg-dark-900/70 backdrop-blur-sm rounded-2xl">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-dark-900/70 backdrop-blur-sm">
           <div className="card-dark p-6 rounded-2xl w-full max-w-sm border border-pass/20 shadow-2xl animate-fade-in">
             <div className="flex items-center gap-2.5 mb-3">
               <AlertTriangle size={18} className="text-pass shrink-0" />

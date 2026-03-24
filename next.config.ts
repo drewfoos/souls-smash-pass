@@ -29,7 +29,7 @@ const securityHeaders = [
       // unsafe-inline: required by Next.js for inline scripts/styles
       // unsafe-eval: required by Firebase Realtime Database SDK internals
       // *.firebaseio.com: Firebase RTDB long-polling injects <script> tags as fallback
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://www.googleapis.com https://accounts.google.com https://*.firebaseio.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://www.googleapis.com https://accounts.google.com https://*.firebaseio.com https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // data: needed for Next.js image placeholders; blob: for canvas operations
       // Restricted to known image CDNs + Google profile photos (no open https:)
@@ -37,7 +37,7 @@ const securityHeaders = [
       "font-src 'self' data: https://fonts.gstatic.com",
       // wss:// is required for Firebase's WebSocket transport (preferred over long-polling).
       // https:// covers REST + long-polling fallback.
-      "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://firebase.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com",
+      "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://firebase.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://va.vercel-scripts.com",
       "frame-src 'self' https://accounts.google.com https://*.firebaseapp.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",

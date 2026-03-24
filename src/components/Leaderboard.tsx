@@ -28,6 +28,12 @@ export function Leaderboard({ onClose }: { onClose: () => void }) {
       }));
   }, [allVotes, sortBy]);
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -55,7 +61,7 @@ export function Leaderboard({ onClose }: { onClose: () => void }) {
       aria-modal="true"
       aria-label="Global Leaderboard"
     >
-      <div className="w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden rounded-2xl bg-dark-900 border border-dark-600/40 shadow-2xl animate-fade-in-up">
+      <div className="w-full max-w-md max-h-[85dvh] flex flex-col overflow-hidden rounded-2xl bg-dark-900 border border-dark-600/40 shadow-2xl animate-fade-in-up">
 
         {/* ── Header ──────────────────────────────────────────── */}
         <div className="relative px-5 pt-5 pb-4">
