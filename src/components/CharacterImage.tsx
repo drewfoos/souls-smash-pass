@@ -7,6 +7,8 @@ interface CharacterImageProps {
   character: Character;
   className?: string;
   priority?: boolean;
+  /** When true, uses eager loading even without priority (e.g. next card in stack). */
+  preload?: boolean;
 }
 
 // Deterministic hash from string → number
@@ -33,7 +35,7 @@ const GAME_PATTERNS: Record<string, string[]> = {
   ER: ["#2e2a0e", "#161408", "#5a5020"],
 };
 
-export function CharacterImage({ character, className = "", priority = false }: CharacterImageProps) {
+export function CharacterImage({ character, className = "", priority = false, preload = false }: CharacterImageProps) {
   const [imgFailed, setImgFailed] = useState(false);
   const gameColor = GAME_COLORS[character.game];
   const hash = useMemo(() => hashStr(character.id), [character.id]);
@@ -159,19 +161,25 @@ export function CharacterImage({ character, className = "", priority = false }: 
 
   const [triedLocal, setTriedLocal] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  // Capture whether this component mounted as the top/priority card.
+  // Cards that start in the background (index 1-2) and later promote to
+  // priority should NOT get the opacity-0 fade-in — that causes a flash
+  // when the image hasn't been eagerly loaded yet.
+  const [mountedAsPriority] = useState(priority);
   const imgSrc = !imgFailed ? (!triedLocal ? localWebp : remoteSrc) : null;
+  const showFadeIn = mountedAsPriority && !imgLoaded;
 
   if (imgSrc) {
     return (
       <div className={`w-full h-full relative ${className}`}>
-        {/* Stylized fallback — only for swipe cards (priority) to prevent flash */}
-        {priority && !imgLoaded && StylizedCard}
+        {/* Stylized fallback — only for cards that mounted as top/priority */}
+        {showFadeIn && StylizedCard}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgSrc}
           alt={character.name}
           className={`absolute inset-0 w-full h-full object-cover object-top z-10 ${
-            priority && !imgLoaded ? "opacity-0" : ""
+            showFadeIn ? "opacity-0" : ""
           }`}
           fetchPriority={priority ? "high" : "auto"}
           onLoad={() => setImgLoaded(true)}
@@ -182,7 +190,7 @@ export function CharacterImage({ character, className = "", priority = false }: 
               setImgFailed(true);
             }
           }}
-          loading={priority ? "eager" : "lazy"}
+          loading={priority || preload ? "eager" : "lazy"}
           decoding={priority ? "sync" : "async"}
           draggable={false}
         />

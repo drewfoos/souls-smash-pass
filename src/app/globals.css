@@ -109,17 +109,35 @@
     }
   }
 
+  /* Small phones with browser chrome (≤700px dvh, portrait) */
+  @media (orientation: portrait) and (max-height: 700px) {
+    .game-title {
+      font-size: clamp(1.25rem, 3.5dvh, 1.75rem);
+      margin-top: 0.25rem;
+      margin-bottom: 0.125rem;
+    }
+  }
+
   /* Game card — portrait uses dvh height, landscape uses container height */
   .game-card {
     height: clamp(200px, 52.5dvh, 600px);
     aspect-ratio: 3 / 4;
   }
 
+
+
   @media (orientation: landscape) and (max-height: 500px) {
     .game-card {
       height: 100%;
       width: auto;
       max-height: 90dvh;
+    }
+  }
+
+  /* Small phones — shorter card so buttons fit */
+  @media (orientation: portrait) and (max-height: 700px) {
+    .game-card {
+      height: clamp(180px, 48dvh, 400px);
     }
   }
 
@@ -130,7 +148,7 @@
     letter-spacing: 0.1em;
     border: 4px solid;
     border-radius: 1.25rem;
-    width: clamp(120px, 38vw, 160px);
+    width: clamp(135px, 40vw, 175px);
     height: calc(1.5em + 5dvh);
     padding: 0.25rem 1rem;
     background: transparent;
@@ -157,6 +175,18 @@
     }
   }
 
+  /* Small phones with browser chrome — compact buttons, wider for tap targets */
+  @media (orientation: portrait) and (max-height: 700px) {
+    .btn-action {
+      width: clamp(130px, 40vw, 170px);
+      height: clamp(44px, calc(1.2em + 4dvh), 64px);
+      font-size: clamp(1.1em, 3.5dvh, 1.4em);
+      border-width: 3px;
+      border-radius: 1rem;
+      padding: 0.25rem 0.75rem;
+    }
+  }
+
   /* Desktop / tablet — large buttons */
   @media (min-width: 640px) and (min-height: 500px) {
     .btn-action {
@@ -165,8 +195,12 @@
       gap: 6px;
       font-size: 2em;
       padding: 0.25rem 2rem;
+      border-width: 4px;
+      border-radius: 1.25rem;
     }
   }
+
+
 
   .btn-action:active { transform: scale(0.95); }
 

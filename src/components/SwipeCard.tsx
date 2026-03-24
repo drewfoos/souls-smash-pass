@@ -120,7 +120,7 @@ export function SwipeCard({
       >
         {/* Character image */}
         <div className="absolute inset-0">
-          <CharacterImage character={character} priority={isTop} />
+          <CharacterImage character={character} priority={isTop} preload={!isTop} />
         </div>
 
         {/* Gradients for readability */}
