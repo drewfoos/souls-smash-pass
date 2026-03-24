@@ -9,6 +9,8 @@ interface CharacterImageProps {
   priority?: boolean;
   /** When true, uses eager loading even without priority (e.g. next card in stack). */
   preload?: boolean;
+  /** Use object-contain instead of object-cover to show the full image without cropping. */
+  contain?: boolean;
 }
 
 // Deterministic hash from string → number
@@ -35,7 +37,7 @@ const GAME_PATTERNS: Record<string, string[]> = {
   ER: ["#2e2a0e", "#161408", "#5a5020"],
 };
 
-export function CharacterImage({ character, className = "", priority = false, preload = false }: CharacterImageProps) {
+export function CharacterImage({ character, className = "", priority = false, preload = false, contain = false }: CharacterImageProps) {
   const [imgFailed, setImgFailed] = useState(false);
   const gameColor = GAME_COLORS[character.game];
   const hash = useMemo(() => hashStr(character.id), [character.id]);
@@ -178,7 +180,7 @@ export function CharacterImage({ character, className = "", priority = false, pr
         <img
           src={imgSrc}
           alt={character.name}
-          className={`absolute inset-0 w-full h-full object-cover object-top z-10 ${
+          className={`absolute inset-0 w-full h-full ${contain ? "object-contain object-center" : "object-cover object-top"} z-10 ${
             showFadeIn ? "opacity-0" : ""
           }`}
           fetchPriority={priority ? "high" : "auto"}

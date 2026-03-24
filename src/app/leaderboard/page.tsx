@@ -1,6 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Heart, X, Trophy, ArrowRight, Crown, Medal, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  Heart,
+  X,
+  Trophy,
+  ArrowRight,
+  Crown,
+  Medal,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { CharacterImage } from "@/components/CharacterImage";
 import {
@@ -13,14 +22,16 @@ import {
 import { getLeaderboard, getTotalVotes } from "@/lib/firebase-db";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eldensmash.com";
+const MIN_PERCENT_RANK_VOTES = 25;
 
 export const metadata: Metadata = {
-  title: "Elden Ring Smash or Pass Leaderboard — Most Smashed Characters",
+  title: "Elden Ring Smash or Pass Leaderboard — Highest Smash Rates",
   description:
-    "See which Elden Ring characters get smashed the most. Live community rankings from thousands of Smash or Pass votes — Ranni, Malenia, Radahn, Messmer, and 500+ more Elden Ring bosses, NPCs, and summons ranked by the community.",
+    "See which Elden Ring characters have the highest smash and pass percentages. Live community rankings from Smash or Pass votes across 500+ Elden Ring characters.",
   keywords: [
     "elden ring smash or pass leaderboard",
-    "elden ring smash or pass results",
+    "elden ring smash percentages",
+    "elden ring pass percentages",
     "most smashed elden ring characters",
     "elden ring character ranking",
     "elden ring tier list",
@@ -30,16 +41,16 @@ export const metadata: Metadata = {
     "malenia smash or pass",
   ],
   openGraph: {
-    title: "Elden Ring Smash or Pass Leaderboard — Most Smashed Characters",
+    title: "Elden Ring Smash or Pass Leaderboard — Highest Smash Rates",
     description:
-      "Live community rankings — see which Elden Ring characters get smashed the most. Updated every minute from thousands of votes.",
+      "Live community rankings — see which Elden Ring characters have the highest smash and pass percentages.",
     url: `${SITE_URL}/leaderboard`,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Elden Ring Smash or Pass Leaderboard — Most Smashed Characters",
+    title: "Elden Ring Smash or Pass Leaderboard — Highest Smash Rates",
     description:
-      "Live community rankings — see which Elden Ring characters get smashed the most.",
+      "Live community rankings — see which Elden Ring characters have the highest smash and pass percentages.",
   },
   alternates: {
     canonical: `${SITE_URL}/leaderboard`,
@@ -52,18 +63,43 @@ type LeaderboardEntry = {
   characterId: string;
   smash: number;
   pass: number;
+  total: number;
+  smashPct: number;
+  passPct: number;
   character: Character | null;
 };
 
-async function getEnrichedLeaderboard(
-  sort: "smash" | "pass",
+async function getEnrichedPercentageLeaderboard(
+  mode: "smash" | "pass",
   limit: number
 ): Promise<LeaderboardEntry[]> {
-  const entries = await getLeaderboard(sort, limit);
-  return entries.map((entry) => ({
-    ...entry,
-    character: characterById.get(entry.characterId) ?? null,
-  }));
+  const entries = await getLeaderboard(mode, 600);
+
+  return entries
+    .map((entry) => {
+      const total = entry.smash + entry.pass;
+      const smashPct = total > 0 ? Math.round((entry.smash / total) * 100) : 0;
+      const passPct = total > 0 ? Math.round((entry.pass / total) * 100) : 0;
+
+      return {
+        ...entry,
+        total,
+        smashPct,
+        passPct,
+        character: characterById.get(entry.characterId) ?? null,
+      };
+    })
+    .filter((entry) => entry.total >= MIN_PERCENT_RANK_VOTES)
+    .sort((a, b) => {
+      const aPct = mode === "smash" ? a.smashPct : a.passPct;
+      const bPct = mode === "smash" ? b.smashPct : b.passPct;
+
+      if (bPct !== aPct) return bPct - aPct;
+      if (b.total !== a.total) return b.total - a.total;
+      if (b.smash !== a.smash) return b.smash - a.smash;
+      return a.characterId.localeCompare(b.characterId);
+    })
+    .slice(0, limit);
 }
 
 /* ── Helpers ── */
@@ -87,8 +123,6 @@ function TypeBadge({ type }: { type: CharacterType }) {
   );
 }
 
-/* ── Split ratio bar — the core visual ── */
-
 function RatioBar({
   smash,
   pass,
@@ -102,6 +136,7 @@ function RatioBar({
 }) {
   const total = smash + pass;
   const smashPct = total > 0 ? (smash / total) * 100 : 50;
+
   return (
     <div className={`w-full ${height} rounded-full overflow-hidden flex`}>
       <div
@@ -124,8 +159,6 @@ function RatioBar({
   );
 }
 
-/* ── Top 3 entry (hero treatment) ── */
-
 function TopEntry({
   entry,
   rank,
@@ -136,16 +169,17 @@ function TopEntry({
   mode: "smash" | "pass";
 }) {
   const char = entry.character;
-  const total = entry.smash + entry.pass;
-  const votes = mode === "smash" ? entry.smash : entry.pass;
-  const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+  const pct = mode === "smash" ? entry.smashPct : entry.passPct;
   const isFirst = rank === 0;
 
   const rankIcon =
     rank === 0 ? (
       <Crown size={14} className="text-gold" />
     ) : (
-      <Medal size={14} className={rank === 1 ? "text-priscilla/60" : "text-amber-500/70"} />
+      <Medal
+        size={14}
+        className={rank === 1 ? "text-priscilla/60" : "text-amber-500/70"}
+      />
     );
 
   return (
@@ -156,9 +190,7 @@ function TopEntry({
           : "bg-white/[0.015] border-white/[0.05] hover:border-white/[0.08]"
       }`}
     >
-      {/* Main row */}
       <div className="flex items-center gap-3 px-4 pt-3.5 pb-2.5">
-        {/* Rank badge */}
         <div
           className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
             isFirst
@@ -171,32 +203,29 @@ function TopEntry({
           {rankIcon}
         </div>
 
-        {/* Thumbnail */}
         {char && (
-          <div
-            className={`w-10 h-10 rounded-lg overflow-hidden shrink-0 border ${
+          <Link
+            href={`/characters/${entry.characterId}`}
+            className={`w-10 h-10 rounded-lg overflow-hidden shrink-0 border block ${
               isFirst ? "border-gold/15" : "border-white/[0.06]"
             }`}
           >
             <CharacterImage character={char} />
-          </div>
+          </Link>
         )}
 
-        {/* Name + type */}
         <div className="flex-1 min-w-0">
-          <div
-            className={`text-sm font-semibold truncate ${
+          <Link
+            href={`/characters/${entry.characterId}`}
+            className={`text-sm font-semibold truncate block hover:underline ${
               isFirst ? "text-gold" : "text-priscilla/90"
             }`}
           >
             {char?.name || entry.characterId}
-          </div>
-          <div className="mt-0.5">
-            {char && <TypeBadge type={char.type} />}
-          </div>
+          </Link>
+          <div className="mt-0.5">{char && <TypeBadge type={char.type} />}</div>
         </div>
 
-        {/* Percentage — the hero number */}
         <div className="text-right shrink-0">
           <div
             className={`text-lg font-bold tabular-nums leading-none ${
@@ -211,7 +240,6 @@ function TopEntry({
         </div>
       </div>
 
-      {/* Ratio bar + vote breakdown */}
       <div className="px-4 pb-3.5">
         <RatioBar smash={entry.smash} pass={entry.pass} mode={mode} height="h-1.5" />
         <div className="flex items-center justify-between mt-1.5">
@@ -220,7 +248,7 @@ function TopEntry({
             {entry.smash.toLocaleString()}
           </span>
           <span className="text-[10px] text-priscilla/20 tabular-nums">
-            {total.toLocaleString()} total
+            {entry.total.toLocaleString()} total
           </span>
           <span className="text-[11px] tabular-nums flex items-center gap-1 text-pass/50">
             <X size={9} />
@@ -231,8 +259,6 @@ function TopEntry({
     </div>
   );
 }
-
-/* ── List row (rank 4+) ── */
 
 function EntryRow({
   entry,
@@ -246,9 +272,7 @@ function EntryRow({
   even: boolean;
 }) {
   const char = entry.character;
-  const total = entry.smash + entry.pass;
-  const votes = mode === "smash" ? entry.smash : entry.pass;
-  const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+  const pct = mode === "smash" ? entry.smashPct : entry.passPct;
 
   return (
     <div
@@ -256,31 +280,32 @@ function EntryRow({
         even ? "bg-white/[0.012]" : ""
       } hover:bg-white/[0.03]`}
     >
-      {/* Rank */}
       <span className="w-5 text-right text-[11px] tabular-nums text-priscilla/25 font-medium shrink-0 group-hover:text-priscilla/45 transition-colors">
         {rank + 1}
       </span>
 
-      {/* Thumbnail */}
       {char && (
-        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/[0.05]">
+        <Link
+          href={`/characters/${entry.characterId}`}
+          className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/[0.05] block"
+        >
           <CharacterImage character={char} />
-        </div>
+        </Link>
       )}
 
-      {/* Name */}
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] font-medium text-priscilla/80 truncate">
+        <Link
+          href={`/characters/${entry.characterId}`}
+          className="text-[13px] font-medium text-priscilla/80 truncate block hover:text-gold transition-colors"
+        >
           {char?.name || entry.characterId}
-        </div>
+        </Link>
       </div>
 
-      {/* Ratio bar — desktop only */}
       <div className="hidden sm:block w-20 shrink-0">
         <RatioBar smash={entry.smash} pass={entry.pass} mode={mode} height="h-1" />
       </div>
 
-      {/* Percentage */}
       <span
         className={`text-xs tabular-nums font-semibold w-10 text-right shrink-0 ${
           mode === "smash" ? "text-gold/75" : "text-pass/75"
@@ -289,7 +314,6 @@ function EntryRow({
         {pct}%
       </span>
 
-      {/* Vote counts — compact */}
       <div className="flex items-center gap-2 shrink-0 w-[88px] sm:w-[104px] justify-end">
         <span className="text-[11px] tabular-nums flex items-center gap-0.5 text-gold/40">
           <Heart size={8} fill="currentColor" />
@@ -303,8 +327,6 @@ function EntryRow({
     </div>
   );
 }
-
-/* ── Section ── */
 
 function LeaderboardSection({
   title,
@@ -322,7 +344,6 @@ function LeaderboardSection({
 
   return (
     <section>
-      {/* Section header */}
       <div className="flex items-center gap-2.5 mb-4 px-1">
         {icon}
         <h2 className="text-souls font-bold text-base tracking-wide">
@@ -335,28 +356,29 @@ function LeaderboardSection({
         </span>
       </div>
 
-      {/* Top 3 — card treatment */}
       <div className="space-y-2 mb-4">
         {top3.map((entry, i) => (
-          <TopEntry
-            key={entry.characterId}
-            entry={entry}
-            rank={i}
-            mode={mode}
-          />
+          <TopEntry key={entry.characterId} entry={entry} rank={i} mode={mode} />
         ))}
       </div>
 
-      {/* Column headers */}
       {rest.length > 0 && (
         <div className="rounded-xl border border-white/[0.04] overflow-hidden">
           <div className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2 border-b border-white/[0.04]">
             <span className="w-5 shrink-0" />
             <span className="w-8 shrink-0" />
-            <span className="flex-1 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium">Character</span>
-            <span className="hidden sm:block w-20 shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-center">Ratio</span>
-            <span className="w-10 shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-right">Rate</span>
-            <span className="w-[88px] sm:w-[104px] shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-right">Votes</span>
+            <span className="flex-1 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium">
+              Character
+            </span>
+            <span className="hidden sm:block w-20 shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-center">
+              Ratio
+            </span>
+            <span className="w-10 shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-right">
+              Rate
+            </span>
+            <span className="w-[88px] sm:w-[104px] shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-right">
+              Votes
+            </span>
           </div>
           {rest.map((entry, i) => (
             <EntryRow
@@ -373,12 +395,10 @@ function LeaderboardSection({
   );
 }
 
-/* ── Page ── */
-
 export default async function LeaderboardPage() {
   const [smashEntries, passEntries, totalVotes] = await Promise.all([
-    getEnrichedLeaderboard("smash", 50),
-    getEnrichedLeaderboard("pass", 50),
+    getEnrichedPercentageLeaderboard("smash", 50),
+    getEnrichedPercentageLeaderboard("pass", 50),
     getTotalVotes(),
   ]);
 
@@ -394,14 +414,14 @@ export default async function LeaderboardPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Elden Ring Smash or Pass Leaderboard — Most Smashed Characters",
-    description: `Community rankings from ${totalVotes.toLocaleString()} votes on 500+ Elden Ring characters.`,
+    name: "Elden Ring Smash or Pass Leaderboard — Highest Smash Rates",
+    description: `Community percentage rankings from ${totalVotes.toLocaleString()} votes on 500+ Elden Ring characters.`,
     numberOfItems: smashEntries.length,
     itemListElement: smashEntries.slice(0, 10).map((entry, i) => ({
       "@type": "ListItem",
       position: i + 1,
       name: entry.character?.name || entry.characterId,
-      description: `${entry.smash.toLocaleString()} smashes, ${entry.pass.toLocaleString()} passes`,
+      description: `${entry.smashPct}% smash rate from ${entry.total.toLocaleString()} total votes`,
     })),
   };
 
@@ -410,13 +430,8 @@ export default async function LeaderboardPage() {
       <div className="max-w-4xl mx-auto">
         <PageHeader current="/leaderboard" />
 
-        {/* ━━ Hero ━━ */}
         <section className="relative text-center pt-8 pb-10 mb-8 overflow-hidden">
-          {/* Atmospheric background glow */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            aria-hidden="true"
-          >
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
             <div
               className="absolute top-[-40%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[100px] opacity-[0.04]"
               style={{ background: "radial-gradient(circle, #ffd700 0%, transparent 70%)" }}
@@ -424,7 +439,6 @@ export default async function LeaderboardPage() {
           </div>
 
           <div className="relative">
-            {/* Eyebrow with live indicator */}
             <div className="flex items-center justify-center gap-2 mb-5">
               <span className="text-[10px] uppercase tracking-[0.2em] text-priscilla/35 font-medium">
                 Live Leaderboard
@@ -451,19 +465,21 @@ export default async function LeaderboardPage() {
             </h1>
 
             <p className="text-priscilla/45 max-w-sm mx-auto text-sm leading-relaxed mb-8">
-              Did you smash Ranni? So did everyone else. See where your
-              picks stack up.
+              Highest smash and pass percentages, with at least {MIN_PERCENT_RANK_VOTES} total votes to rank.
             </p>
 
-            {/* Stats strip */}
             <div className="inline-flex items-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-5 sm:px-7 py-3 gap-5 sm:gap-8 mb-8">
               <div className="text-center">
-                <div className="text-base sm:text-lg font-bold text-priscilla/85 tabular-nums">{totalVotes.toLocaleString()}</div>
+                <div className="text-base sm:text-lg font-bold text-priscilla/85 tabular-nums">
+                  {totalVotes.toLocaleString()}
+                </div>
                 <div className="text-[10px] text-priscilla/30 mt-0.5">Votes</div>
               </div>
               <div className="w-px h-8 bg-white/[0.06]" />
               <div className="text-center">
-                <div className="text-base sm:text-lg font-bold text-priscilla/85">500+</div>
+                <div className="text-base sm:text-lg font-bold text-priscilla/85">
+                  500+
+                </div>
                 <div className="text-[10px] text-priscilla/30 mt-0.5">Characters</div>
               </div>
               <div className="w-px h-8 bg-white/[0.06]" />
@@ -490,10 +506,9 @@ export default async function LeaderboardPage() {
           </div>
         </section>
 
-        {/* ━━ Leaderboard columns ━━ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8">
           <LeaderboardSection
-            title="Most Smashed"
+            title="Highest Smash %"
             entries={smashEntries}
             mode="smash"
             icon={
@@ -503,7 +518,7 @@ export default async function LeaderboardPage() {
             }
           />
           <LeaderboardSection
-            title="Most Passed"
+            title="Highest Pass %"
             entries={passEntries}
             mode="pass"
             icon={
@@ -514,7 +529,6 @@ export default async function LeaderboardPage() {
           />
         </div>
 
-        {/* ━━ Bottom CTA ━━ */}
         <div className="text-center mt-16 mb-4">
           <div className="flex items-center gap-6 mb-8" aria-hidden="true">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
@@ -538,15 +552,14 @@ export default async function LeaderboardPage() {
           </Link>
         </div>
 
-        {/* SEO summary — crawlable text, visually subtle at bottom */}
         <p className="text-[11px] text-priscilla/30 leading-relaxed text-center max-w-lg mx-auto mt-10">
-          <span className="text-priscilla/45">Top smashed:</span>{" "}
+          <span className="text-priscilla/45">Top smash rates:</span>{" "}
           {topSmashed.join(", ")}.{" "}
-          <span className="text-priscilla/45">Most passed:</span>{" "}
-          {topPassed.join(", ")}.{" "}
-          Updated every minute from real community votes.
+          <span className="text-priscilla/45">Top pass rates:</span>{" "}
+          {topPassed.join(", ")}. Updated every minute from real community votes.
         </p>
       </div>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

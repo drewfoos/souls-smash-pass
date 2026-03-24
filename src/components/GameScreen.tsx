@@ -138,6 +138,9 @@ export function GameScreen() {
           <Link href="/leaderboard" className="px-3 py-1.5 rounded-lg text-xs text-ash/50 hover:text-ash/80 hover:bg-dark-700/50 transition-all">
             Leaderboard
           </Link>
+          <Link href="/characters" className="px-3 py-1.5 rounded-lg text-xs text-ash/50 hover:text-ash/80 hover:bg-dark-700/50 transition-all">
+            Characters
+          </Link>
           <Link href="/about" className="px-3 py-1.5 rounded-lg text-xs text-ash/50 hover:text-ash/80 hover:bg-dark-700/50 transition-all">
             About
           </Link>
