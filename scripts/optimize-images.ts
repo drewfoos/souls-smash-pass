@@ -11,8 +11,8 @@
  *
  * Settings:
  *   Max dimension: 600px (width or height, preserving aspect ratio)
- *   Quality:       82  (visually lossless for card-sized images)
- *   Effort:        4   (0–6; 4 = good compression without slow encode)
+ *   Quality:       75  (transparent at card sizes; saves ~30% vs q82)
+ *   Effort:        6   (0–6; max compression, slower encode)
  */
 
 import sharp from "sharp";
@@ -21,8 +21,8 @@ import { join, basename, extname } from "path";
 
 const CHARACTERS_DIR = join(import.meta.dir, "..", "public", "characters");
 const MAX_DIM = 600;
-const QUALITY = 82;
-const EFFORT = 4;
+const QUALITY = 75;
+const EFFORT = 6;
 const CONCURRENCY = 6;
 
 // ---------------------------------------------------------------------------

@@ -164,11 +164,11 @@ export function GameScreen() {
 
       {/* Privacy / Terms — desktop only, hidden in phone landscape */}
       <div className="hidden md:flex landscape-short:!hidden items-center gap-3 fixed bottom-4 right-4 z-20">
-        <Link href="/privacy" className="text-[11px] text-ash/60 hover:text-gold transition-colors">
+        <Link href="/privacy" className="text-[11px] text-ash/80 hover:text-gold transition-colors">
           Privacy
         </Link>
-        <span className="text-ash/30">·</span>
-        <Link href="/terms" className="text-[11px] text-ash/60 hover:text-gold transition-colors">
+        <span className="text-ash/40">·</span>
+        <Link href="/terms" className="text-[11px] text-ash/80 hover:text-gold transition-colors">
           Terms
         </Link>
       </div>
@@ -230,7 +230,7 @@ export function GameScreen() {
             <ActionButtons />
             {/* Keybinds — desktop only */}
             <div className="hidden lg:flex landscape-short:!hidden absolute right-0 top-1/2 -translate-y-1/2 flex-col gap-2.5 rounded-l-xl bg-dark-800/60 border border-r-0 border-dark-600/25 backdrop-blur-sm px-4 py-3.5">
-              <h5 className="text-souls text-xs font-bold text-priscilla/45">Keybinds:</h5>
+              <p className="text-souls text-xs font-bold text-priscilla/45">Keybinds:</p>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-[11px] text-priscilla/35">Next Character</span>
                 <kbd className="w-7 h-7 rounded-md bg-dark-700/60 border border-dark-600/40 flex items-center justify-center text-priscilla/45">

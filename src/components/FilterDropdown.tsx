@@ -79,6 +79,7 @@ export function FilterDropdown({ currentTypes, onApply }: FilterDropdownProps) {
             src={currentImage}
             alt=""
             className="w-full h-full object-cover"
+            loading="lazy" decoding="async"
             draggable={false}
           />
         </div>
@@ -118,6 +119,7 @@ export function FilterDropdown({ currentTypes, onApply }: FilterDropdownProps) {
                 src="/characters/er_malenia.webp"
                 alt=""
                 className="w-full h-full object-cover"
+                loading="lazy" decoding="async"
                 draggable={false}
               />
             </div>
@@ -154,6 +156,7 @@ export function FilterDropdown({ currentTypes, onApply }: FilterDropdownProps) {
                     src={TYPE_IMAGES[type]}
                     alt=""
                     className="w-full h-full object-cover"
+                    loading="lazy" decoding="async"
                     draggable={false}
                   />
                 </div>

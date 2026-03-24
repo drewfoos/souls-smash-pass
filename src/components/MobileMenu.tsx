@@ -246,7 +246,7 @@ export function MobileMenu({
                 hover:bg-dark-700/40 ${!currentTypes ? "text-gold font-semibold" : "text-priscilla/60"}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/characters/er_malenia.webp" alt="" className="w-6 h-6 rounded object-cover border border-gold/30" draggable={false} />
+              <img src="/characters/er_malenia.webp" alt="" className="w-6 h-6 rounded object-cover border border-gold/30" loading="lazy" decoding="async" draggable={false} />
               All Characters
               {!currentTypes && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-gold" />}
             </button>
@@ -262,7 +262,7 @@ export function MobileMenu({
                   style={isActive ? { color: colors.text } : undefined}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={TYPE_IMAGES[type]} alt="" className="w-6 h-6 rounded object-cover" style={{ border: `2px solid ${colors.border}` }} draggable={false} />
+                  <img src={TYPE_IMAGES[type]} alt="" className="w-6 h-6 rounded object-cover" style={{ border: `2px solid ${colors.border}` }} loading="lazy" decoding="async" draggable={false} />
                   {CHARACTER_TYPE_LABELS[type]}
                   <span className="text-[10px] text-priscilla/30 ml-0.5">{count}</span>
                   {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.text }} />}
