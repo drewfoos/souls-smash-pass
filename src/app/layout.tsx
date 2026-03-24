@@ -105,7 +105,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${cinzel.variable} ${inter.variable}`} >
       <head>
-        <link rel="preconnect" href="https://elden-smash-or-pass.firebaseapp.com" />
+        <link rel="preconnect" href="https://elden-smash-or-pass.firebaseapp.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googleapis.com" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

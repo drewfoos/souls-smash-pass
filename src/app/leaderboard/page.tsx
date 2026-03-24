@@ -163,7 +163,7 @@ function EntryRow({
           className={`text-xs tabular-nums flex items-center gap-1 ${
             mode === "smash"
               ? "text-gold/70 font-semibold"
-              : "text-priscilla/45"
+              : "text-priscilla/60"
           }`}
         >
           <Heart
@@ -175,8 +175,8 @@ function EntryRow({
         <span
           className={`text-xs tabular-nums flex items-center gap-1 ${
             mode === "pass"
-              ? "text-pass/70 font-semibold"
-              : "text-priscilla/45"
+              ? "text-pass/90 font-semibold"
+              : "text-priscilla/60"
           }`}
         >
           <Flame size={11} />
@@ -283,7 +283,7 @@ export default async function LeaderboardPage() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Flame size={16} className="text-pass" />
-              <h2 className="text-souls font-bold text-pass/80 text-lg">
+              <h2 className="text-souls font-bold text-pass text-lg">
                 Most Passed Elden Ring Characters
               </h2>
             </div>
@@ -302,7 +302,7 @@ export default async function LeaderboardPage() {
 
         {/* SEO-friendly bottom text + CTA */}
         <div className="text-center mt-12 space-y-4">
-          <p className="text-sm text-ash/40 max-w-md mx-auto">
+          <p className="text-sm text-ash/60 max-w-md mx-auto">
             Think the rankings are wrong? Play Elden Ring Smash or Pass and
             vote on every character — from Ranni to the Grafted Scion.
           </p>
