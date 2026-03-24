@@ -103,17 +103,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`dark ${cinzel.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`dark ${cinzel.variable} ${inter.variable}`} >
       <head>
         <link rel="preconnect" href="https://elden-smash-or-pass.firebaseapp.com" />
-      </head>
-      <body className="min-h-dvh antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
           }}
         />
+      </head>
+      <body className="min-h-dvh antialiased">
         {/* Subtle animated fog */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 animate-fog bg-gradient-to-br from-gold/[0.015] via-transparent to-crimson-bright/[0.01]" />

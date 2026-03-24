@@ -221,12 +221,6 @@ export default async function LeaderboardPage() {
   return (
     <main className="min-h-dvh py-8 px-4">
       <div className="max-w-3xl mx-auto">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-          }}
-        />
         <PageHeader current="/leaderboard" />
 
         {/* Hero — keyword-rich for SEO */}
@@ -320,6 +314,12 @@ export default async function LeaderboardPage() {
           </Link>
         </div>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
     </main>
   );
 }
