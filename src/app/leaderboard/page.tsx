@@ -56,7 +56,7 @@ function getMedalStyle(rank: number) {
     return "bg-gradient-to-br from-slate-300/20 to-slate-400/10 text-slate-300 border-slate-400/25";
   if (rank === 2)
     return "bg-gradient-to-br from-amber-600/20 to-amber-700/10 text-amber-500 border-amber-600/25";
-  return "bg-dark-700/30 text-priscilla/35 border-transparent";
+  return "bg-dark-700/30 text-priscilla/55 border-transparent";
 }
 
 function TypeBadge({ type }: { type: CharacterType }) {
@@ -151,7 +151,7 @@ function EntryRow({
               style={{ width: `${pct}%` }}
             />
           </div>
-          <span className="text-[11px] text-priscilla/30 tabular-nums">
+          <span className="text-[11px] text-priscilla/50 tabular-nums">
             {pct}%
           </span>
         </div>
@@ -163,7 +163,7 @@ function EntryRow({
           className={`text-xs tabular-nums flex items-center gap-1 ${
             mode === "smash"
               ? "text-gold/70 font-semibold"
-              : "text-priscilla/25"
+              : "text-priscilla/45"
           }`}
         >
           <Heart
@@ -176,7 +176,7 @@ function EntryRow({
           className={`text-xs tabular-nums flex items-center gap-1 ${
             mode === "pass"
               ? "text-pass/70 font-semibold"
-              : "text-priscilla/25"
+              : "text-priscilla/45"
           }`}
         >
           <Flame size={11} />
@@ -219,7 +219,7 @@ export default async function LeaderboardPage() {
   };
 
   return (
-    <div className="min-h-dvh py-8 px-4">
+    <main className="min-h-dvh py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <script
           type="application/ld+json"
@@ -320,6 +320,6 @@ export default async function LeaderboardPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
