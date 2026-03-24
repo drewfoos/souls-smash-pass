@@ -152,7 +152,7 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-dvh py-8 px-4">
+    <main className="min-h-dvh py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <PageHeader current="/privacy" />
 
@@ -161,7 +161,7 @@ export default function PrivacyPage() {
           <h1 className="text-souls font-black text-gold text-3xl md:text-4xl mb-3 drop-shadow-[0_0_30px_rgba(255,215,0,0.15)]">
             Privacy Policy
           </h1>
-          <p className="text-xs text-ash/40">Last updated: March 2026</p>
+          <p className="text-xs text-ash/60">Last updated: March 2026</p>
         </div>
 
         {/* Accordion sections */}
@@ -189,6 +189,6 @@ export default function PrivacyPage() {
           ))}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

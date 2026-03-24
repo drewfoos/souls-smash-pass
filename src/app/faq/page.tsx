@@ -86,7 +86,7 @@ const faqJsonLd = {
 
 export default function FaqPage() {
   return (
-    <div className="min-h-dvh py-8 px-4">
+    <main className="min-h-dvh py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <PageHeader current="/faq" />
 
@@ -142,6 +142,6 @@ export default function FaqPage() {
           __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c"),
         }}
       />
-    </div>
+    </main>
   );
 }

@@ -73,7 +73,7 @@ const features = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-dvh py-8 px-4">
+    <main className="min-h-dvh py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <PageHeader current="/about" />
 
@@ -118,7 +118,7 @@ export default function AboutPage() {
                 <h3 className="text-souls font-bold text-sm text-priscilla/90 mb-1">
                   {feature.title}
                 </h3>
-                <p className="text-xs text-ash/60 leading-relaxed">
+                <p className="text-xs text-ash/75 leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -133,13 +133,13 @@ export default function AboutPage() {
             {["Next.js", "Tailwind CSS", "Framer Motion", "Firebase", "Vercel"].map((tech) => (
               <span
                 key={tech}
-                className="text-xs px-3 py-1.5 rounded-full bg-dark-700/50 text-ash/60 border border-ash/10"
+                className="text-xs px-3 py-1.5 rounded-full bg-dark-700/50 text-ash/75 border border-ash/10"
               >
                 {tech}
               </span>
             ))}
           </div>
-          <p className="text-xs text-ash/50 mt-4">
+          <p className="text-xs text-ash/65 mt-4">
             Created by{" "}
             <a
               href="https://github.com/drewfoos"
@@ -154,8 +154,8 @@ export default function AboutPage() {
 
         {/* Disclaimer */}
         <div className="rounded-lg border border-ash/8 bg-dark-900/50 p-5">
-          <h2 className="text-souls font-bold text-ash/50 text-sm mb-2">Disclaimer</h2>
-          <p className="text-xs text-ash/40 leading-relaxed">
+          <h2 className="text-souls font-bold text-ash/65 text-sm mb-2">Disclaimer</h2>
+          <p className="text-xs text-ash/60 leading-relaxed">
             Elden Smash is a fan project and is not affiliated with, endorsed by, or connected to
             FromSoftware or Bandai Namco. Elden Ring and all related characters are trademarks of
             their respective owners.
@@ -172,6 +172,6 @@ export default function AboutPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

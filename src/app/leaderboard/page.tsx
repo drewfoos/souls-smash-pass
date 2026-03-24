@@ -302,7 +302,7 @@ export default async function LeaderboardPage() {
 
         {/* SEO-friendly bottom text + CTA */}
         <div className="text-center mt-12 space-y-4">
-          <p className="text-sm text-ash/60 max-w-md mx-auto">
+          <p className="text-sm text-ash/75 max-w-md mx-auto">
             Think the rankings are wrong? Play Elden Ring Smash or Pass and
             vote on every character — from Ranni to the Grafted Scion.
           </p>

@@ -16,8 +16,8 @@ import {
   Link2,
   Globe,
 } from "lucide-react";
+import Link from "next/link";
 import { LazyCharCard } from "./LazyCharCard";
-import { Leaderboard } from "./Leaderboard";
 import { UserProfile } from "./UserProfile";
 import { ShareButtons } from "./ShareButtons";
 import { SignInButton, type ProfileTab } from "./SignInButton";
@@ -25,7 +25,6 @@ import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 
 export function ResultsScreen() {
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [profileTab, setProfileTab] = useState<ProfileTab>("profile");
   const [showSignInModal, setShowSignInModal] = useState(false);
@@ -244,14 +243,14 @@ export function ResultsScreen() {
           <RotateCcw size={16} />
           <span className="relative z-10">Play Again</span>
         </button>
-        <button
-          onClick={() => setShowLeaderboard(true)}
+        <Link
+          href="/leaderboard"
           className="px-8 py-3 rounded-xl border border-gold/25 text-gold/70
             hover:bg-gold/8 hover:border-gold/40 transition-all flex items-center gap-2 text-sm"
         >
           <BarChart3 size={16} />
           Leaderboard
-        </button>
+        </Link>
       </div>
 
       {/* Smash list — grouped by type */}
@@ -317,9 +316,6 @@ export function ResultsScreen() {
         </div>
       )}
 
-      {showLeaderboard && (
-        <Leaderboard onClose={() => setShowLeaderboard(false)} />
-      )}
       {showProfile && (
         <UserProfile onClose={() => { setShowProfile(false); refreshIsPublic(); }} defaultTab={profileTab} onPublicChange={setIsPublic} />
       )}
