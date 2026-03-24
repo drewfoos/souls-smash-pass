@@ -123,7 +123,7 @@ export function CardStack() {
         className="relative h-full mx-auto"
         style={{ aspectRatio: "3/4", maxWidth: "100%" }}
       >
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           {visibleCards
             .map((char, i) => (
               <SwipeCard

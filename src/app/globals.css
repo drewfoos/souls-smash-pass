@@ -98,6 +98,10 @@
     border-radius: 1rem;
   }
 
+  .swipe-card-inner {
+    box-shadow: 0 10px 40px -10px rgba(50, 50, 73, 0.4);
+  }
+
   /* Game title — shrinks in phone landscape */
   .game-title {
     font-size: clamp(1.5rem, 4dvh, 2.5rem);

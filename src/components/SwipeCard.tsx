@@ -82,6 +82,7 @@ export function SwipeCard({
         zIndex: 10 - index,
         y: stackOffset,
         scale: stackScale,
+        willChange: "transform, opacity",
       }}
       initial={{ opacity: 0, scale: 0.92, y: 20 }}
       animate={{
@@ -104,13 +105,12 @@ export function SwipeCard({
       }}
     >
       <motion.div
-        className={`relative w-full h-full rounded-2xl overflow-hidden select-none ${
+        className={`relative w-full h-full rounded-2xl overflow-hidden select-none swipe-card-inner ${
           isDraggable ? "cursor-grab active:cursor-grabbing" : "cursor-default"
         }`}
         style={{
           x: isDraggable ? x : 0,
           rotate: isDraggable ? rotate : 0,
-          boxShadow: "0 12.5px 100px -10px rgba(50, 50, 73, 0.4), 0 10px 10px -10px rgba(50, 50, 73, 0.3)",
         }}
         drag={isDraggable ? "x" : false}
         dragConstraints={{ left: 0, right: 0 }}
@@ -183,7 +183,7 @@ export function SwipeCard({
               className="absolute top-10 left-5 z-20"
               style={{ opacity: smashOpacity }}
             >
-              <div className="border-[3px] border-gold px-5 py-2 rounded-lg -rotate-12 bg-gold/10 backdrop-blur-sm">
+              <div className="border-[3px] border-gold px-5 py-2 rounded-lg -rotate-12 bg-gold/10">
                 <span className="text-souls text-3xl md:text-4xl font-black text-gold tracking-widest drop-shadow-[0_0_16px_rgba(240,192,64,0.6)]">
                   SMASH
                 </span>
@@ -194,7 +194,7 @@ export function SwipeCard({
               className="absolute top-10 right-5 z-20"
               style={{ opacity: passOpacity }}
             >
-              <div className="border-[3px] border-crimson-bright px-5 py-2 rounded-lg rotate-12 bg-crimson-bright/10 backdrop-blur-sm">
+              <div className="border-[3px] border-crimson-bright px-5 py-2 rounded-lg rotate-12 bg-crimson-bright/10">
                 <span className="text-souls text-3xl md:text-4xl font-black text-crimson-bright tracking-widest drop-shadow-[0_0_16px_rgba(232,51,74,0.6)]">
                   PASS
                 </span>
