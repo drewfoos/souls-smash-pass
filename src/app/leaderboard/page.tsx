@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Heart, Flame, Trophy, Users } from "lucide-react";
+import { Heart, X, Trophy, ArrowRight, Crown, Medal, TrendingUp, TrendingDown } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { CharacterImage } from "@/components/CharacterImage";
 import {
@@ -46,31 +46,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Revalidate every 60 seconds — keeps the page fresh without hammering Firebase
 export const revalidate = 60;
-
-function getMedalStyle(rank: number) {
-  if (rank === 0)
-    return "bg-gradient-to-br from-yellow-400/25 to-gold/10 text-gold border-gold/30 shadow-[0_0_16px_rgba(212,175,55,0.2)]";
-  if (rank === 1)
-    return "bg-gradient-to-br from-slate-300/20 to-slate-400/10 text-slate-300 border-slate-400/25";
-  if (rank === 2)
-    return "bg-gradient-to-br from-amber-600/20 to-amber-700/10 text-amber-500 border-amber-600/25";
-  return "bg-dark-700/30 text-priscilla/55 border-transparent";
-}
-
-function TypeBadge({ type }: { type: CharacterType }) {
-  const colors = CHARACTER_TYPE_COLORS[type];
-  const label = CHARACTER_TYPE_LABELS[type];
-  return (
-    <span
-      className="text-[10px] px-1.5 py-0.5 rounded"
-      style={{ color: colors.text, backgroundColor: `${colors.bg}33` }}
-    >
-      {label}
-    </span>
-  );
-}
 
 type LeaderboardEntry = {
   characterId: string;
@@ -90,7 +66,67 @@ async function getEnrichedLeaderboard(
   }));
 }
 
-function EntryRow({
+/* ── Helpers ── */
+
+function formatVotes(n: number): string {
+  if (n >= 10_000) return `${(n / 1000).toFixed(0)}k`;
+  if (n >= 1_000) return `${(n / 1000).toFixed(1)}k`;
+  return n.toLocaleString();
+}
+
+function TypeBadge({ type }: { type: CharacterType }) {
+  const colors = CHARACTER_TYPE_COLORS[type];
+  const label = CHARACTER_TYPE_LABELS[type];
+  return (
+    <span
+      className="text-[10px] leading-none px-1.5 py-0.5 rounded font-medium"
+      style={{ color: colors.text, backgroundColor: `${colors.bg}22` }}
+    >
+      {label}
+    </span>
+  );
+}
+
+/* ── Split ratio bar — the core visual ── */
+
+function RatioBar({
+  smash,
+  pass,
+  mode,
+  height = "h-1.5",
+}: {
+  smash: number;
+  pass: number;
+  mode: "smash" | "pass";
+  height?: string;
+}) {
+  const total = smash + pass;
+  const smashPct = total > 0 ? (smash / total) * 100 : 50;
+  return (
+    <div className={`w-full ${height} rounded-full overflow-hidden flex`}>
+      <div
+        className={`${height} transition-all duration-500 ${
+          mode === "smash"
+            ? "bg-gold/50 rounded-l-full"
+            : "bg-gold/20 rounded-l-full"
+        }`}
+        style={{ width: `${smashPct}%` }}
+      />
+      <div
+        className={`${height} transition-all duration-500 ${
+          mode === "pass"
+            ? "bg-pass/50 rounded-r-full"
+            : "bg-pass/20 rounded-r-full"
+        }`}
+        style={{ width: `${100 - smashPct}%` }}
+      />
+    </div>
+  );
+}
+
+/* ── Top 3 entry (hero treatment) ── */
+
+function TopEntry({
   entry,
   rank,
   mode,
@@ -101,91 +137,243 @@ function EntryRow({
 }) {
   const char = entry.character;
   const total = entry.smash + entry.pass;
-  const pct =
-    total > 0
-      ? Math.round(
-          ((mode === "smash" ? entry.smash : entry.pass) / total) * 100
-        )
-      : 0;
+  const votes = mode === "smash" ? entry.smash : entry.pass;
+  const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+  const isFirst = rank === 0;
+
+  const rankIcon =
+    rank === 0 ? (
+      <Crown size={14} className="text-gold" />
+    ) : (
+      <Medal size={14} className={rank === 1 ? "text-priscilla/60" : "text-amber-500/70"} />
+    );
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
-        rank < 3
-          ? "bg-dark-800/50 border border-dark-600/20"
-          : "hover:bg-dark-800/30"
+      className={`rounded-xl border transition-all group ${
+        isFirst
+          ? "bg-gold/[0.04] border-gold/12 hover:border-gold/20"
+          : "bg-white/[0.015] border-white/[0.05] hover:border-white/[0.08]"
       }`}
     >
-      {/* Rank */}
-      <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 border ${getMedalStyle(
-          rank
-        )}`}
-      >
-        {rank + 1}
+      {/* Main row */}
+      <div className="flex items-center gap-3 px-4 pt-3.5 pb-2.5">
+        {/* Rank badge */}
+        <div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+            isFirst
+              ? "bg-gold/12 border border-gold/20"
+              : rank === 1
+                ? "bg-white/[0.04] border border-white/[0.08]"
+                : "bg-amber-600/8 border border-amber-600/15"
+          }`}
+        >
+          {rankIcon}
+        </div>
+
+        {/* Thumbnail */}
+        {char && (
+          <div
+            className={`w-10 h-10 rounded-lg overflow-hidden shrink-0 border ${
+              isFirst ? "border-gold/15" : "border-white/[0.06]"
+            }`}
+          >
+            <CharacterImage character={char} />
+          </div>
+        )}
+
+        {/* Name + type */}
+        <div className="flex-1 min-w-0">
+          <div
+            className={`text-sm font-semibold truncate ${
+              isFirst ? "text-gold" : "text-priscilla/90"
+            }`}
+          >
+            {char?.name || entry.characterId}
+          </div>
+          <div className="mt-0.5">
+            {char && <TypeBadge type={char.type} />}
+          </div>
+        </div>
+
+        {/* Percentage — the hero number */}
+        <div className="text-right shrink-0">
+          <div
+            className={`text-lg font-bold tabular-nums leading-none ${
+              mode === "smash" ? "text-gold" : "text-pass"
+            }`}
+          >
+            {pct}%
+          </div>
+          <div className="text-[10px] text-priscilla/30 mt-0.5">
+            {mode === "smash" ? "smash" : "pass"} rate
+          </div>
+        </div>
       </div>
+
+      {/* Ratio bar + vote breakdown */}
+      <div className="px-4 pb-3.5">
+        <RatioBar smash={entry.smash} pass={entry.pass} mode={mode} height="h-1.5" />
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="text-[11px] tabular-nums flex items-center gap-1 text-gold/50">
+            <Heart size={9} fill="currentColor" />
+            {entry.smash.toLocaleString()}
+          </span>
+          <span className="text-[10px] text-priscilla/20 tabular-nums">
+            {total.toLocaleString()} total
+          </span>
+          <span className="text-[11px] tabular-nums flex items-center gap-1 text-pass/50">
+            <X size={9} />
+            {entry.pass.toLocaleString()}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── List row (rank 4+) ── */
+
+function EntryRow({
+  entry,
+  rank,
+  mode,
+  even,
+}: {
+  entry: LeaderboardEntry;
+  rank: number;
+  mode: "smash" | "pass";
+  even: boolean;
+}) {
+  const char = entry.character;
+  const total = entry.smash + entry.pass;
+  const votes = mode === "smash" ? entry.smash : entry.pass;
+  const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+
+  return (
+    <div
+      className={`flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 transition-colors group ${
+        even ? "bg-white/[0.012]" : ""
+      } hover:bg-white/[0.03]`}
+    >
+      {/* Rank */}
+      <span className="w-5 text-right text-[11px] tabular-nums text-priscilla/25 font-medium shrink-0 group-hover:text-priscilla/45 transition-colors">
+        {rank + 1}
+      </span>
 
       {/* Thumbnail */}
       {char && (
-        <div
-          className={`w-11 h-11 rounded-lg overflow-hidden shrink-0 border ${
-            rank === 0 ? "border-gold/25" : "border-dark-600/30"
-          }`}
-        >
+        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/[0.05]">
           <CharacterImage character={char} />
         </div>
       )}
 
-      {/* Info */}
+      {/* Name */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-priscilla/85 truncate">
+        <div className="text-[13px] font-medium text-priscilla/80 truncate">
           {char?.name || entry.characterId}
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          {char && <TypeBadge type={char.type} />}
-          <div className="flex-1 h-1.5 rounded-full bg-dark-700/40 max-w-[80px] overflow-hidden">
-            <div
-              className={`h-full rounded-full ${
-                mode === "smash" ? "bg-gold/50" : "bg-pass/50"
-              }`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-          <span className="text-[11px] text-priscilla/50 tabular-nums">
-            {pct}%
-          </span>
         </div>
       </div>
 
-      {/* Votes */}
-      <div className="flex items-center gap-3 shrink-0">
-        <span
-          className={`text-xs tabular-nums flex items-center gap-1 ${
-            mode === "smash"
-              ? "text-gold/70 font-semibold"
-              : "text-priscilla/60"
-          }`}
-        >
-          <Heart
-            size={11}
-            fill={mode === "smash" ? "currentColor" : "none"}
-          />
-          {entry.smash.toLocaleString()}
+      {/* Ratio bar — desktop only */}
+      <div className="hidden sm:block w-20 shrink-0">
+        <RatioBar smash={entry.smash} pass={entry.pass} mode={mode} height="h-1" />
+      </div>
+
+      {/* Percentage */}
+      <span
+        className={`text-xs tabular-nums font-semibold w-10 text-right shrink-0 ${
+          mode === "smash" ? "text-gold/75" : "text-pass/75"
+        }`}
+      >
+        {pct}%
+      </span>
+
+      {/* Vote counts — compact */}
+      <div className="flex items-center gap-2 shrink-0 w-[88px] sm:w-[104px] justify-end">
+        <span className="text-[11px] tabular-nums flex items-center gap-0.5 text-gold/40">
+          <Heart size={8} fill="currentColor" />
+          {formatVotes(entry.smash)}
         </span>
-        <span
-          className={`text-xs tabular-nums flex items-center gap-1 ${
-            mode === "pass"
-              ? "text-pass/90 font-semibold"
-              : "text-priscilla/60"
-          }`}
-        >
-          <Flame size={11} />
-          {entry.pass.toLocaleString()}
+        <span className="text-[11px] tabular-nums flex items-center gap-0.5 text-pass/40">
+          <X size={8} />
+          {formatVotes(entry.pass)}
         </span>
       </div>
     </div>
   );
 }
+
+/* ── Section ── */
+
+function LeaderboardSection({
+  title,
+  entries,
+  mode,
+  icon,
+}: {
+  title: string;
+  entries: LeaderboardEntry[];
+  mode: "smash" | "pass";
+  icon: React.ReactNode;
+}) {
+  const top3 = entries.slice(0, 3);
+  const rest = entries.slice(3);
+
+  return (
+    <section>
+      {/* Section header */}
+      <div className="flex items-center gap-2.5 mb-4 px-1">
+        {icon}
+        <h2 className="text-souls font-bold text-base tracking-wide">
+          <span className={mode === "smash" ? "text-gold/90" : "text-pass/90"}>
+            {title}
+          </span>
+        </h2>
+        <span className="text-[10px] text-priscilla/25 tabular-nums ml-auto">
+          {entries.length} ranked
+        </span>
+      </div>
+
+      {/* Top 3 — card treatment */}
+      <div className="space-y-2 mb-4">
+        {top3.map((entry, i) => (
+          <TopEntry
+            key={entry.characterId}
+            entry={entry}
+            rank={i}
+            mode={mode}
+          />
+        ))}
+      </div>
+
+      {/* Column headers */}
+      {rest.length > 0 && (
+        <div className="rounded-xl border border-white/[0.04] overflow-hidden">
+          <div className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2 border-b border-white/[0.04]">
+            <span className="w-5 shrink-0" />
+            <span className="w-8 shrink-0" />
+            <span className="flex-1 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium">Character</span>
+            <span className="hidden sm:block w-20 shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-center">Ratio</span>
+            <span className="w-10 shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-right">Rate</span>
+            <span className="w-[88px] sm:w-[104px] shrink-0 text-[10px] text-priscilla/25 uppercase tracking-wider font-medium text-right">Votes</span>
+          </div>
+          {rest.map((entry, i) => (
+            <EntryRow
+              key={entry.characterId}
+              entry={entry}
+              rank={i + 3}
+              mode={mode}
+              even={i % 2 === 0}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ── Page ── */
 
 export default async function LeaderboardPage() {
   const [smashEntries, passEntries, totalVotes] = await Promise.all([
@@ -194,7 +382,6 @@ export default async function LeaderboardPage() {
     getTotalVotes(),
   ]);
 
-  // Top character names for SEO text
   const topSmashed = smashEntries
     .slice(0, 5)
     .map((e) => e.character?.name)
@@ -220,99 +407,145 @@ export default async function LeaderboardPage() {
 
   return (
     <main className="min-h-dvh py-8 px-4">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <PageHeader current="/leaderboard" />
 
-        {/* Hero — keyword-rich for SEO */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/15 mb-4">
-            <Trophy size={28} className="text-gold" />
+        {/* ━━ Hero ━━ */}
+        <section className="relative text-center pt-8 pb-10 mb-8 overflow-hidden">
+          {/* Atmospheric background glow */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            aria-hidden="true"
+          >
+            <div
+              className="absolute top-[-40%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[100px] opacity-[0.04]"
+              style={{ background: "radial-gradient(circle, #ffd700 0%, transparent 70%)" }}
+            />
           </div>
-          <h1 className="text-souls font-black text-gold text-3xl md:text-4xl mb-3 drop-shadow-[0_0_30px_rgba(255,215,0,0.15)]">
-            Elden Ring Smash or Pass Leaderboard
-          </h1>
-          <p className="text-ash/60 max-w-lg mx-auto leading-relaxed">
-            Live community rankings from{" "}
-            <strong className="text-ash/90 tabular-nums">
-              {totalVotes.toLocaleString()}
-            </strong>{" "}
-            votes on 500+ Elden Ring characters. See which bosses, NPCs, and
-            summons the community smashed or passed.
-          </p>
+
+          <div className="relative">
+            {/* Eyebrow with live indicator */}
+            <div className="flex items-center justify-center gap-2 mb-5">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-priscilla/35 font-medium">
+                Live Leaderboard
+              </span>
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+              </span>
+            </div>
+
+            <h1
+              className="text-souls font-black leading-[1.1] mb-4"
+              style={{
+                fontSize: "clamp(1.75rem, 5vw, 2.75rem)",
+              }}
+            >
+              <span className="text-priscilla/90">Community</span>{" "}
+              <span
+                className="text-gold"
+                style={{ textShadow: "0 0 40px rgba(255,215,0,0.15)" }}
+              >
+                Rankings
+              </span>
+            </h1>
+
+            <p className="text-priscilla/45 max-w-sm mx-auto text-sm leading-relaxed mb-8">
+              Did you smash Ranni? So did everyone else. See where your
+              picks stack up.
+            </p>
+
+            {/* Stats strip */}
+            <div className="inline-flex items-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-5 sm:px-7 py-3 gap-5 sm:gap-8 mb-8">
+              <div className="text-center">
+                <div className="text-base sm:text-lg font-bold text-priscilla/85 tabular-nums">{totalVotes.toLocaleString()}</div>
+                <div className="text-[10px] text-priscilla/30 mt-0.5">Votes</div>
+              </div>
+              <div className="w-px h-8 bg-white/[0.06]" />
+              <div className="text-center">
+                <div className="text-base sm:text-lg font-bold text-priscilla/85">500+</div>
+                <div className="text-[10px] text-priscilla/30 mt-0.5">Characters</div>
+              </div>
+              <div className="w-px h-8 bg-white/[0.06]" />
+              <div className="text-center">
+                <div className="text-base sm:text-lg font-bold text-priscilla/85">60s</div>
+                <div className="text-[10px] text-priscilla/30 mt-0.5">Refresh</div>
+              </div>
+            </div>
+
+            <div>
+              <Link
+                href="/"
+                className="btn-primary px-7 py-2.5 text-xs inline-flex items-center gap-2 group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Cast Your Votes
+                  <ArrowRight
+                    size={13}
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
+                </span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ━━ Leaderboard columns ━━ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8">
+          <LeaderboardSection
+            title="Most Smashed"
+            entries={smashEntries}
+            mode="smash"
+            icon={
+              <div className="w-6 h-6 rounded-md bg-gold/10 border border-gold/15 flex items-center justify-center">
+                <TrendingUp size={12} className="text-gold" />
+              </div>
+            }
+          />
+          <LeaderboardSection
+            title="Most Passed"
+            entries={passEntries}
+            mode="pass"
+            icon={
+              <div className="w-6 h-6 rounded-md bg-pass/10 border border-pass/15 flex items-center justify-center">
+                <TrendingDown size={12} className="text-pass" />
+              </div>
+            }
+          />
         </div>
 
-        {/* SEO summary — visible, crawlable text with top character names */}
-        <div className="flex items-start gap-3 rounded-xl bg-dark-800/40 border border-dark-600/15 p-4 mb-8">
-          <Users size={16} className="text-ash/40 mt-0.5 shrink-0" />
-          <p className="text-xs text-ash/50 leading-relaxed">
-            <strong className="text-ash/70">Top smashed:</strong>{" "}
-            {topSmashed.join(", ")}.{" "}
-            <strong className="text-ash/70">Most passed:</strong>{" "}
-            {topPassed.join(", ")}.{" "}
-            Rankings update every minute based on real community votes.{" "}
-            <Link href="/" className="text-gold/60 hover:text-gold underline underline-offset-2">
-              Cast your own votes
-            </Link>{" "}
-            to influence the leaderboard.
-          </p>
-        </div>
-
-        {/* Two-column layout on desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Most Smashed */}
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Heart size={16} className="text-gold" fill="currentColor" />
-              <h2 className="text-souls font-bold text-gold/80 text-lg">
-                Most Smashed Elden Ring Characters
-              </h2>
-            </div>
-            <div className="space-y-1.5">
-              {smashEntries.map((entry, i) => (
-                <EntryRow
-                  key={entry.characterId}
-                  entry={entry}
-                  rank={i}
-                  mode="smash"
-                />
-              ))}
-            </div>
-          </section>
-
-          {/* Most Passed */}
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Flame size={16} className="text-pass" />
-              <h2 className="text-souls font-bold text-pass text-lg">
-                Most Passed Elden Ring Characters
-              </h2>
-            </div>
-            <div className="space-y-1.5">
-              {passEntries.map((entry, i) => (
-                <EntryRow
-                  key={entry.characterId}
-                  entry={entry}
-                  rank={i}
-                  mode="pass"
-                />
-              ))}
-            </div>
-          </section>
-        </div>
-
-        {/* SEO-friendly bottom text + CTA */}
-        <div className="text-center mt-12 space-y-4">
-          <p className="text-sm text-ash/75 max-w-md mx-auto">
-            Think the rankings are wrong? Play Elden Ring Smash or Pass and
-            vote on every character — from Ranni to the Grafted Scion.
+        {/* ━━ Bottom CTA ━━ */}
+        <div className="text-center mt-16 mb-4">
+          <div className="flex items-center gap-6 mb-8" aria-hidden="true">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+            <Trophy size={10} className="text-gold/20" />
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+          </div>
+          <p className="text-sm text-priscilla/45 max-w-sm mx-auto mb-6">
+            Think the rankings are wrong? Vote on every character.
           </p>
           <Link
             href="/"
-            className="btn-primary px-8 py-3 text-sm inline-flex items-center gap-2"
+            className="btn-primary px-9 py-3 text-sm inline-flex items-center gap-2 group"
           >
-            <span className="relative z-10">Cast Your Votes</span>
+            <span className="relative z-10 flex items-center gap-2">
+              Start Playing
+              <ArrowRight
+                size={14}
+                className="transition-transform group-hover:translate-x-0.5"
+              />
+            </span>
           </Link>
         </div>
+
+        {/* SEO summary — crawlable text, visually subtle at bottom */}
+        <p className="text-[11px] text-priscilla/30 leading-relaxed text-center max-w-lg mx-auto mt-10">
+          <span className="text-priscilla/45">Top smashed:</span>{" "}
+          {topSmashed.join(", ")}.{" "}
+          <span className="text-priscilla/45">Most passed:</span>{" "}
+          {topPassed.join(", ")}.{" "}
+          Updated every minute from real community votes.
+        </p>
       </div>
       <script
         type="application/ld+json"
