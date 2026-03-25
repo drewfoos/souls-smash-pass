@@ -8,8 +8,8 @@ import { CharacterImage } from "@/components/CharacterImage";
 import {
   characters,
   characterById,
-  CHARACTER_TYPE_LABELS,
   CHARACTER_TYPE_COLORS,
+  type CharacterType,
 } from "@/data/characters";
 import { getAllVotes } from "@/lib/firebase-db";
 import { CHARACTER_LORE } from "./lore";
@@ -51,8 +51,8 @@ const fetchCharacterStats = cache(async function fetchCharacterStats(id: string)
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function toSingularTypeLabel(type: keyof typeof CHARACTER_TYPE_LABELS) {
-  const singularLabels: Record<keyof typeof CHARACTER_TYPE_LABELS, string> = {
+function toSingularTypeLabel(type: CharacterType) {
+  const singularLabels: Record<CharacterType, string> = {
     boss: "Boss",
     npc: "NPC",
     mob: "Creature",
@@ -85,7 +85,7 @@ export async function generateMetadata({
   const singularType = toSingularTypeLabel(char.type).toLowerCase();
 
   const title = `${char.name} — Smash or Pass? ${smashPct}% Smash Rate | Elden Smash`;
-  const description = `${char.name} has a ${smashPct}% smash rate from ${total} votes on Elden Smash. Read ${char.name}'s Elden Ring lore, see why players smash or pass, and compare this ${singularType} against 500+ Elden Ring characters.`;
+  const description = `${char.name} has a ${smashPct}% smash rate from ${total} votes on Elden Smash. Read ${char.name}'s Elden Ring lore, see why players smash or pass, and compare this ${singularType} against nearly 500 Elden Ring characters.`;
 
   return {
     title,
@@ -146,7 +146,7 @@ export default async function CharacterPage({
   const lore = customLore ?? {
     lore: [
       `${char.name} is a ${singularTypeLabel.toLowerCase()} in Elden Ring. ${char.description}`,
-      `${char.name} is one of over 500 characters featured on Elden Smash, where players can vote smash or pass and compare community rankings across bosses, NPCs, enemies, summons, and creatures from the Lands Between.`,
+      `${char.name} is one of nearly 500 characters featured on Elden Smash, where players can vote smash or pass and compare community rankings across bosses, NPCs, enemies, summons, and creatures from the Lands Between.`,
     ],
     whySmash: [
       `A memorable ${singularTypeLabel.toLowerCase()} design that stands out in Elden Ring`,

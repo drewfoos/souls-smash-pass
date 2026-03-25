@@ -27,7 +27,7 @@ const MIN_PERCENT_RANK_VOTES = 25;
 export const metadata: Metadata = {
   title: "Elden Ring Smash or Pass Leaderboard — Highest Smash Rates",
   description:
-    "See which Elden Ring characters have the highest smash and pass percentages. Live community rankings from Smash or Pass votes across 500+ Elden Ring characters.",
+    "See which Elden Ring characters have the highest smash and pass percentages. Live community rankings from Smash or Pass votes across nearly 500 Elden Ring characters.",
   keywords: [
     "elden ring smash or pass leaderboard",
     "elden ring smash percentages",
@@ -87,7 +87,7 @@ async function getLeaderboardData(limit: number) {
         character: characterById.get(characterId) ?? null,
       };
     })
-    .filter((e) => e.total >= MIN_PERCENT_RANK_VOTES);
+    .filter((e) => e.total >= MIN_PERCENT_RANK_VOTES && e.character !== null);
 
   const sortBy = (mode: "smash" | "pass") => {
     const sorted = [...enriched].sort((a, b) => {
@@ -422,7 +422,7 @@ export default async function LeaderboardPage() {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Elden Ring Smash or Pass Leaderboard — Highest Smash Rates",
-    description: `Community percentage rankings from ${totalVotes.toLocaleString()} votes on 500+ Elden Ring characters.`,
+    description: `Community percentage rankings from ${totalVotes.toLocaleString()} votes on nearly 500 Elden Ring characters.`,
     numberOfItems: smashEntries.length,
     itemListElement: smashEntries.slice(0, 10).map((entry, i) => ({
       "@type": "ListItem",
@@ -485,7 +485,7 @@ export default async function LeaderboardPage() {
               <div className="w-px h-8 bg-white/[0.06]" />
               <div className="text-center">
                 <div className="text-base sm:text-lg font-bold text-priscilla/85">
-                  500+
+                  497
                 </div>
                 <div className="text-[10px] text-priscilla/30 mt-0.5">Characters</div>
               </div>
