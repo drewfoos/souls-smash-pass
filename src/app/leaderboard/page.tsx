@@ -19,7 +19,7 @@ import {
   type Character,
   type CharacterType,
 } from "@/data/characters";
-import { getLeaderboard, getTotalVotes } from "@/lib/firebase-db";
+import { getAllVotes } from "@/lib/firebase-db";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eldensmash.com";
 const MIN_PERCENT_RANK_VOTES = 25;
@@ -69,37 +69,48 @@ type LeaderboardEntry = {
   character: Character | null;
 };
 
-async function getEnrichedPercentageLeaderboard(
-  mode: "smash" | "pass",
-  limit: number
-): Promise<LeaderboardEntry[]> {
-  const entries = await getLeaderboard(mode, 600);
+/** Build both leaderboards + total votes from a single /votes snapshot. */
+async function getLeaderboardData(limit: number) {
+  const allVotes = await getAllVotes();
 
-  return entries
-    .map((entry) => {
-      const total = entry.smash + entry.pass;
-      const smashPct = total > 0 ? Math.round((entry.smash / total) * 100) : 0;
-      const passPct = total > 0 ? Math.round((entry.pass / total) * 100) : 0;
-
+  // Build enriched entries once
+  const enriched: LeaderboardEntry[] = Object.entries(allVotes)
+    .map(([characterId, v]) => {
+      const total = v.smash + v.pass;
       return {
-        ...entry,
+        characterId,
+        smash: v.smash,
+        pass: v.pass,
         total,
-        smashPct,
-        passPct,
-        character: characterById.get(entry.characterId) ?? null,
+        smashPct: total > 0 ? Math.round((v.smash / total) * 100) : 0,
+        passPct: total > 0 ? Math.round((v.pass / total) * 100) : 0,
+        character: characterById.get(characterId) ?? null,
       };
     })
-    .filter((entry) => entry.total >= MIN_PERCENT_RANK_VOTES)
-    .sort((a, b) => {
+    .filter((e) => e.total >= MIN_PERCENT_RANK_VOTES);
+
+  const sortBy = (mode: "smash" | "pass") => {
+    const sorted = [...enriched].sort((a, b) => {
       const aPct = mode === "smash" ? a.smashPct : a.passPct;
       const bPct = mode === "smash" ? b.smashPct : b.passPct;
-
       if (bPct !== aPct) return bPct - aPct;
       if (b.total !== a.total) return b.total - a.total;
       if (b.smash !== a.smash) return b.smash - a.smash;
       return a.characterId.localeCompare(b.characterId);
-    })
-    .slice(0, limit);
+    });
+    return sorted.slice(0, limit);
+  };
+
+  const totalVotes = Object.values(allVotes).reduce(
+    (sum, v) => sum + v.smash + v.pass,
+    0
+  );
+
+  return {
+    smashEntries: sortBy("smash"),
+    passEntries: sortBy("pass"),
+    totalVotes,
+  };
 }
 
 /* ── Helpers ── */
@@ -396,11 +407,7 @@ function LeaderboardSection({
 }
 
 export default async function LeaderboardPage() {
-  const [smashEntries, passEntries, totalVotes] = await Promise.all([
-    getEnrichedPercentageLeaderboard("smash", 50),
-    getEnrichedPercentageLeaderboard("pass", 50),
-    getTotalVotes(),
-  ]);
+  const { smashEntries, passEntries, totalVotes } = await getLeaderboardData(50);
 
   const topSmashed = smashEntries
     .slice(0, 5)

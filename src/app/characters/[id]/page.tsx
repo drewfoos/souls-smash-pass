@@ -11,7 +11,7 @@ import {
   CHARACTER_TYPE_LABELS,
   CHARACTER_TYPE_COLORS,
 } from "@/data/characters";
-import { getCharacterVotes, getAllVotes } from "@/lib/firebase-db";
+import { getAllVotes } from "@/lib/firebase-db";
 import { CHARACTER_LORE } from "./lore";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eldensmash.com";

@@ -8,7 +8,7 @@ import {
   CHARACTER_TYPE_LABELS,
   CHARACTER_TYPE_COLORS,
 } from "@/data/characters";
-import { getCharacterVotes } from "@/lib/firebase-db";
+import { getAllVotes } from "@/lib/firebase-db";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eldensmash.com";
 
@@ -143,31 +143,32 @@ export default async function CharactersPage({
   const searchQuery = sanitizeSearchQuery(resolvedSearchParams.q);
   const normalizedQuery = searchQuery.toLowerCase();
 
-  const charactersWithVotes = await Promise.all(
-    characters
-      .filter(
-        (char): char is typeof char & { type: "boss" | "npc" | "mob" | "summon" } =>
-          char.type === "boss" ||
-          char.type === "npc" ||
-          char.type === "mob" ||
-          char.type === "summon"
-      )
-      .map(async (char) => {
-        const votes = await getCharacterVotes(char.id);
-        const total = votes.smash + votes.pass;
-        const smashPct = total > 0 ? Math.round((votes.smash / total) * 100) : 0;
-        const divisiveScore = total > 0 ? Math.abs(smashPct - 50) : 999;
+  // Single snapshot instead of 500+ individual reads
+  const allVotes = await getAllVotes();
 
-        return {
-          ...char,
-          votes,
-          total,
-          smashPct,
-          divisiveScore,
-          eligibleForPctRanking: total >= MIN_PERCENT_RANK_VOTES,
-        };
-      })
-  );
+  const charactersWithVotes = characters
+    .filter(
+      (char): char is typeof char & { type: "boss" | "npc" | "mob" | "summon" } =>
+        char.type === "boss" ||
+        char.type === "npc" ||
+        char.type === "mob" ||
+        char.type === "summon"
+    )
+    .map((char) => {
+      const votes = allVotes[char.id] ?? { smash: 0, pass: 0 };
+      const total = votes.smash + votes.pass;
+      const smashPct = total > 0 ? Math.round((votes.smash / total) * 100) : 0;
+      const divisiveScore = total > 0 ? Math.abs(smashPct - 50) : 999;
+
+      return {
+        ...char,
+        votes,
+        total,
+        smashPct,
+        divisiveScore,
+        eligibleForPctRanking: total >= MIN_PERCENT_RANK_VOTES,
+      };
+    });
 
   const filteredByType =
     typeFilter === "all"
