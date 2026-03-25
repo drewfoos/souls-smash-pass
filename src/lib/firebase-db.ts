@@ -308,8 +308,24 @@ export async function getMultipleCharacterVotes(
 }
 
 // ---------------------------------------------------------------------------
-// getLeaderboard — top N characters sorted by smash or pass count
+// getAllVotes — single snapshot of the entire /votes tree
 // ---------------------------------------------------------------------------
+
+export async function getAllVotes(): Promise<Record<string, VoteData>> {
+  const db = getAdminDb();
+  const snap = await db.ref("votes").get();
+  const all = snap.val() as VotesSnapshot | null;
+  if (!all) return {};
+
+  const result: Record<string, VoteData> = {};
+  for (const [key, data] of Object.entries(all)) {
+    result[unsanitizeFirebaseKey(key)] = {
+      smash: Math.max(0, data?.smash ?? 0),
+      pass: Math.max(0, data?.pass ?? 0),
+    };
+  }
+  return result;
+}
 
 // ---------------------------------------------------------------------------
 // getTotalVotes — sum of all smash + pass votes across every character

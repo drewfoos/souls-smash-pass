@@ -11,7 +11,7 @@ import {
   CHARACTER_TYPE_LABELS,
   CHARACTER_TYPE_COLORS,
 } from "@/data/characters";
-import { getCharacterVotes } from "@/lib/firebase-db";
+import { getCharacterVotes, getAllVotes } from "@/lib/firebase-db";
 import { CHARACTER_LORE } from "./lore";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eldensmash.com";
@@ -22,36 +22,23 @@ export const revalidate = 60;
 // ── Data fetching ───────────────────────────────────────────────────────────
 
 const fetchCharacterStats = cache(async function fetchCharacterStats(id: string) {
-  const [votes, allCharacters] = await Promise.all([
-    getCharacterVotes(id),
-    Promise.all(
-      characters.map(async (char) => {
-        const v = await getCharacterVotes(char.id);
-        const total = v.smash + v.pass;
-        const smashPct = total > 0 ? Math.round((v.smash / total) * 100) : 0;
-
-        return {
-          characterId: char.id,
-          smash: v.smash,
-          pass: v.pass,
-          total,
-          smashPct,
-        };
-      })
-    ),
-  ]);
+  // Single snapshot of the entire /votes tree instead of 500+ individual reads
+  const allVotes = await getAllVotes();
+  const votes = allVotes[id] ?? { smash: 0, pass: 0 };
 
   const total = votes.smash + votes.pass;
   const smashPct = total > 0 ? Math.round((votes.smash / total) * 100) : 0;
 
-  const percentRankBoard = allCharacters
-    .filter((entry) => entry.total >= MIN_PERCENT_RANK_VOTES)
-    .sort((a, b) => {
-      if (b.smashPct !== a.smashPct) return b.smashPct - a.smashPct;
-      return b.total - a.total;
-    });
+  // Compute percentage-based rank from the same snapshot
+  const ranked = Object.entries(allVotes)
+    .map(([charId, v]) => {
+      const t = v.smash + v.pass;
+      return { characterId: charId, total: t, smashPct: t > 0 ? Math.round((v.smash / t) * 100) : 0 };
+    })
+    .filter((e) => e.total >= MIN_PERCENT_RANK_VOTES)
+    .sort((a, b) => (b.smashPct !== a.smashPct ? b.smashPct - a.smashPct : b.total - a.total));
 
-  const smashRank = percentRankBoard.findIndex((entry) => entry.characterId === id) + 1;
+  const smashRank = ranked.findIndex((e) => e.characterId === id) + 1;
 
   return {
     votes,
@@ -279,7 +266,7 @@ export default async function CharacterPage({
                   {singularTypeLabel}
                 </div>
 
-                {isRankedByPercent && smashRank && smashRank <= 50 && (
+                {isRankedByPercent && smashRank && (
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[9px] font-bold px-2 py-0.5 rounded-full bg-dark-900/90 text-priscilla/90 border border-white/[0.12] backdrop-blur-sm tabular-nums whitespace-nowrap shadow-md">
                     #{smashRank} by smash %
                   </div>
