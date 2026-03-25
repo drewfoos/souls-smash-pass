@@ -491,8 +491,8 @@ export function AdminDashboard() {
                   <th className="px-3 py-3 text-left cursor-pointer hover:text-priscilla select-none" onClick={() => handleUserSort("displayName")}>
                     User{userSortIcon("displayName")}
                   </th>
-                  <th className="px-3 py-3 text-right cursor-pointer hover:text-gold select-none" onClick={() => handleUserSort("currentId")}>
-                    Progress{userSortIcon("currentId")}
+                  <th className="px-3 py-3 text-right cursor-pointer hover:text-gold select-none" onClick={() => handleUserSort("totalVotes")}>
+                    Progress{userSortIcon("totalVotes")}
                   </th>
                   <th className="px-3 py-3 text-right cursor-pointer hover:text-smash select-none" onClick={() => handleUserSort("totalVotes")}>
                     Votes Cast{userSortIcon("totalVotes")}
@@ -538,11 +538,11 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-3 text-right tabular-nums">
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-gold font-semibold">{u.currentId} / {characters.length}</span>
+                            <span className="text-gold font-semibold">{u.totalVotes} / {characters.length}</span>
                             <div className="w-20 h-1.5 bg-dark-600 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gold/60 rounded-full"
-                                style={{ width: `${pct(u.currentId, characters.length)}%` }}
+                                style={{ width: `${pct(u.totalVotes, characters.length)}%` }}
                               />
                             </div>
                           </div>
@@ -584,9 +584,9 @@ export function AdminDashboard() {
                               <div>
                                 <div className="text-xs text-ash/40 uppercase tracking-wider mb-1">Progress</div>
                                 <div className="text-gold font-bold text-lg">
-                                  {pct(u.currentId, characters.length)}%
+                                  {pct(u.totalVotes, characters.length)}%
                                   <span className="text-ash/40 text-xs font-normal ml-1">
-                                    ({u.currentId} chars)
+                                    ({u.totalVotes} chars)
                                   </span>
                                 </div>
                               </div>
