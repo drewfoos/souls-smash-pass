@@ -255,8 +255,14 @@ export function AdminDashboard() {
   // ── Live global stats ─────────────────────────────────────────────────
   const withVotes = useMemo(() => charRows.filter((r) => r.total > 0), [charRows]);
   const liveStats = useMemo(() => {
-    const totalSmashes = charRows.reduce((s, r) => s + r.smash, 0);
-    const totalPasses = charRows.reduce((s, r) => s + r.pass, 0);
+    // Sum from raw allVotes (includes orphaned/removed characters) so the
+    // global total matches the leaderboard and Firebase aggregate exactly.
+    let totalSmashes = 0;
+    let totalPasses = 0;
+    for (const v of Object.values(allVotes)) {
+      totalSmashes += v?.smash ?? 0;
+      totalPasses += v?.pass ?? 0;
+    }
     const total = totalSmashes + totalPasses;
     return {
       totalVotes: total,
@@ -265,7 +271,7 @@ export function AdminDashboard() {
       smashRate: total > 0 ? Math.round((totalSmashes / total) * 1000) / 10 : null,
       charactersWithVotes: withVotes.length,
     };
-  }, [charRows, withVotes]);
+  }, [allVotes, withVotes]);
 
   const topSmashed = useMemo(() => [...withVotes].sort((a, b) => b.smash - a.smash).slice(0, 5), [withVotes]);
   const topPassed = useMemo(() => [...withVotes].sort((a, b) => b.pass - a.pass).slice(0, 5), [withVotes]);
