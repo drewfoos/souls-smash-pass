@@ -233,7 +233,7 @@ export default async function CharacterPage({
   return (
     <main className="min-h-dvh py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <PageHeader current="/leaderboard" />
+        <PageHeader current="/characters" />
 
         <nav className="text-[11px] text-priscilla/35 mb-4 mt-2">
           <Link href="/" className="hover:text-priscilla/60 transition-colors">
