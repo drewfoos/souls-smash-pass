@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     images: ["/opengraph-image"],
   },
   alternates: {
-    canonical: SITE_URL,
+    canonical: "/",
   },
   robots: {
     index: true,
