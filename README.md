@@ -23,13 +23,13 @@ No account needed. Just start swiping.
 
 ## The Roster
 
-**529 characters** pulled from Elden Ring and Shadow of the Erdtree:
+**497 characters** pulled from Elden Ring and Shadow of the Erdtree:
 
 | Type | Count | You'll See... |
 |------|------:|---------------|
-| Creatures | 163 | Runebears, Revenants, Crucible Knights, Land Octopi |
-| Bosses | 157 | Malenia, Radahn, Messmer, Godrick, Mohg |
-| NPCs | 127 | Ranni, Alexander, Millicent, Blaidd, Patches |
+| Creatures | 160 | Runebears, Revenants, Crucible Knights, Land Octopi |
+| Bosses | 141 | Malenia, Radahn, Messmer, Godrick, Mohg |
+| NPCs | 114 | Ranni, Alexander, Millicent, Blaidd, Patches |
 | Summons | 82 | Mimic Tear, Dung Eater, Jellyfish, Lhutel |
 
 Yes, the Grafted Scion is in here. Good luck.

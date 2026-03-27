@@ -74,7 +74,7 @@ export default function OgImage() {
             letterSpacing: "0.15em",
           }}
         >
-          <span>500+ Characters</span>
+          <span>450+ Characters</span>
           <span style={{ color: "rgba(240,192,64,0.4)" }}>·</span>
           <span>Ranni · Malenia · Radahn</span>
           <span style={{ color: "rgba(240,192,64,0.4)" }}>·</span>

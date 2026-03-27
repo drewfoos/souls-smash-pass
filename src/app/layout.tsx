@@ -24,11 +24,11 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eldensmash.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Elden Ring Smash or Pass | Vote on 500+ Characters | Elden Smash",
+    default: "Elden Ring Smash or Pass | Vote on 450+ Characters | Elden Smash",
     template: "%s | Elden Smash",
   },
   description:
-    "Play Elden Ring Smash or Pass and vote on 500+ characters including bosses, NPCs, enemies, summons, and wildlife. See community results from thousands of votes.",
+    "Play Elden Ring Smash or Pass and vote on 450+ characters including bosses, NPCs, enemies, summons, and wildlife. See community results from thousands of votes.",
   keywords: [
     "elden ring smash or pass",
     "smash or pass elden ring",
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
     "fromsoftware characters",
   ],
   openGraph: {
-    title: "Elden Ring Smash or Pass | Vote on 500+ Characters",
+    title: "Elden Ring Smash or Pass | Vote on 450+ Characters",
     description:
-      "Vote on 500+ Elden Ring characters and see community Smash or Pass results.",
+      "Vote on 450+ Elden Ring characters and see community Smash or Pass results.",
     type: "website",
     url: SITE_URL,
     siteName: "Elden Smash",
@@ -50,9 +50,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Elden Ring Smash or Pass | Vote on 500+ Characters",
+    title: "Elden Ring Smash or Pass | Vote on 450+ Characters",
     description:
-      "Vote on 500+ Elden Ring characters and see community Smash or Pass results.",
+      "Vote on 450+ Elden Ring characters and see community Smash or Pass results.",
     images: ["/opengraph-image"],
   },
   alternates: {
@@ -80,7 +80,7 @@ const jsonLd = {
   name: "Elden Smash",
   url: SITE_URL,
   description:
-    "Play Elden Ring Smash or Pass and vote on 500+ characters including bosses, NPCs, enemies, summons, and wildlife. See community results from thousands of votes.",
+    "Play Elden Ring Smash or Pass and vote on 450+ characters including bosses, NPCs, enemies, summons, and wildlife. See community results from thousands of votes.",
   applicationCategory: "GameApplication",
   operatingSystem: "Any",
   offers: {

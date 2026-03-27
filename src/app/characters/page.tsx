@@ -143,7 +143,7 @@ export default async function CharactersPage({
   const searchQuery = sanitizeSearchQuery(resolvedSearchParams.q);
   const normalizedQuery = searchQuery.toLowerCase();
 
-  // Single snapshot instead of 500+ individual reads
+  // Single snapshot instead of 450+ individual reads
   const allVotes = await getAllVotes();
 
   const charactersWithVotes = characters

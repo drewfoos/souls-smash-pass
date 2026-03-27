@@ -32,7 +32,7 @@ const faqs = [
   {
     question: "What is Elden Smash?",
     answer:
-      "Elden Smash is a free Smash or Pass game featuring over 500 characters from Elden Ring. Swipe right to smash or left to pass on bosses, NPCs, merchants, summons, and creatures from the Lands Between.",
+      "Elden Smash is a free Smash or Pass game featuring over 450 characters from Elden Ring. Swipe right to smash or left to pass on bosses, NPCs, merchants, summons, and creatures from the Lands Between.",
   },
   {
     question: "How do I play Elden Ring Smash or Pass?",
@@ -47,7 +47,7 @@ const faqs = [
   {
     question: "How many characters are in Elden Smash?",
     answer:
-      "There are over 500 characters from Elden Ring including bosses like Malenia and Radahn, NPCs like Ranni and Melina, merchants, spirit summons, and creatures from the Lands Between.",
+      "There are over 450 characters from Elden Ring including bosses like Malenia and Radahn, NPCs like Ranni and Melina, merchants, spirit summons, and creatures from the Lands Between.",
   },
   {
     question: "Can I save my progress?",

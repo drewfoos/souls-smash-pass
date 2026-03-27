@@ -9,6 +9,8 @@ import {
   Medal,
   TrendingUp,
   TrendingDown,
+  Hash,
+  Percent,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { CharacterImage } from "@/components/CharacterImage";

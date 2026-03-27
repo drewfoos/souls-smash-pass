@@ -17,7 +17,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eldensmash.com";
 export const metadata: Metadata = {
   title: "About | Elden Ring Smash or Pass",
   description:
-    "Elden Smash is the ultimate Elden Ring Smash or Pass game. Swipe through 500+ characters from the Lands Between — bosses, NPCs, merchants, summons, and creatures.",
+    "Elden Smash is the ultimate Elden Ring Smash or Pass game. Swipe through 450+ characters from the Lands Between — bosses, NPCs, merchants, summons, and creatures.",
   keywords: [
     "elden ring smash or pass",
     "smash or pass elden ring",
@@ -27,14 +27,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "About | Elden Ring Smash or Pass",
     description:
-      "Swipe through 500+ Elden Ring characters. Bosses, NPCs, merchants, summons, and creatures from the Lands Between.",
+      "Swipe through 450+ Elden Ring characters. Bosses, NPCs, merchants, summons, and creatures from the Lands Between.",
     url: `${SITE_URL}/about`,
   },
   twitter: {
     card: "summary_large_image",
     title: "About | Elden Ring Smash or Pass",
     description:
-      "Swipe through 500+ Elden Ring characters. Bosses, NPCs, merchants, summons, and creatures from the Lands Between.",
+      "Swipe through 450+ Elden Ring characters. Bosses, NPCs, merchants, summons, and creatures from the Lands Between.",
   },
   alternates: {
     canonical: `${SITE_URL}/about`,
@@ -58,7 +58,7 @@ const features: {
   },
   {
     icon: Users,
-    title: "500+ Characters",
+    title: "450+ Characters",
     description:
       "Every boss, NPC, merchant, summon, and creature. From Ranni to the humble land octopus.",
     accent: "text-ranni",
@@ -150,7 +150,7 @@ export default function AboutPage() {
               className="text-ash/65 max-w-md mx-auto text-[15px] leading-relaxed mb-8 text-center animate-fade-in"
               style={{ animationDelay: "100ms" }}
             >
-              500+ Elden Ring characters. One question each.
+              450+ Elden Ring characters. One question each.
               <br className="hidden sm:block" />
               No account needed — just start swiping.
             </p>
@@ -252,7 +252,7 @@ export default function AboutPage() {
               style={{ animationDelay: "350ms" }}
             >
               {[
-                { value: "500+", label: "Characters" },
+                { value: "450+", label: "Characters" },
                 { value: "Free", label: "No Ads" },
                 { value: "Live", label: "Leaderboard" },
               ].map((stat) => (
