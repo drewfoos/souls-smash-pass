@@ -454,6 +454,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // ever get to read it here.
   const [hasRestored, setHasRestored] = useState(false);
 
+  // Tracks whether game-complete was already true when the component mounted or
+  // restored, so we don't re-show "Picks saved" on every revisit.
+  const wasCompleteOnMount = useRef(false);
+
   // Tracks which characters the anon user has voted on (and how) across filter
   // changes. Stored as Map<charId, action> so the action can be forwarded to
   // /api/vote when the user signs in. Auth users use previousVotesRef instead.
@@ -472,6 +476,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       // Seed the anon voted map so filter changes exclude already-voted chars
       // and sign-in can forward the action to the server.
       for (const h of saved.history) anonVotedIds.current.set(h.character.id, h.action);
+      // Mark if the restored state was already complete so we don't re-toast.
+      if (saved.gameComplete) wasCompleteOnMount.current = true;
     }
     setHasRestored(true); // signal to GameRouter that it can now decide
   }, []); // empty deps = run exactly once after mount
@@ -1198,6 +1204,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // vote (+ currentIndex + runConfig) atomically as part of each flush batch.
   useEffect(() => {
     if (!state.gameComplete) return;
+
+    // If the game was already complete when we restored (e.g. revisiting the
+    // site), skip the toast — it was shown the first time they finished.
+    if (wasCompleteOnMount.current) {
+      wasCompleteOnMount.current = false; // allow future completions to toast
+      return;
+    }
 
     flushVotes().then(() => {
       if (user && state.history.length > 0) {
