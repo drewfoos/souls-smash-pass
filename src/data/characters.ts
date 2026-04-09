@@ -72,6 +72,14 @@ export const characters: Character[] = [
     description: "The red-haired champion of the Golden Order. Has a secret.",
   },
   {
+    id: "er_elden_beast",
+    name: "Elden Beast",
+    game: "ER",
+    type: "boss",
+    imageUrl: "https://static.wikia.nocookie.net/eldenring/images/1/13/Elden_Beast.png",
+    description: "The living incarnation of the Elden Ring itself. A cosmic vassal of the Greater Will.",
+  },
+  {
     id: "er_marika",
     name: "Queen Marika the Eternal",
     game: "ER",
