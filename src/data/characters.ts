@@ -757,7 +757,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "summon",
     imageUrl: "",
-    description: "A wheelchair-bound archer spirit ash with a loyal wolf.",
+    description: "An Albinauric archer who can't walk. Her wolf Lobo carried her. As a spirit ash, she snipes from afar.",
   },
   {
     id: "er_yura",
@@ -1077,7 +1077,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "A dragon rotting alive from Scarlet Rot. Still breathes fire though.",
+    description: "A dragon rotting alive from Scarlet Rot. Breathes rot instead of fire.",
   },
   {
     id: "er_battlemage_hugues",
@@ -1093,7 +1093,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "Stealthy invader from the Ravenmount. Prefers knives to conversation.",
+    description: "A bird-themed assassin who dresses as a raptor. Hunted by Yura near Raya Lucaria.",
   },
   {
     id: "er_dragonkin_soldier",
@@ -1117,7 +1117,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "DLC guardian who takes their job very seriously. No trespassing means no trespassing.",
+    description: "Chief guardian of the Giants' Flame at the Guardian's Garrison. Keeper of the Fell God's incantation.",
   },
   {
     id: "er_dragonkin_soldier_of_nokstella",
@@ -1301,7 +1301,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "Three powerful DLC figures who really don't want you passing through.",
+    description: "The butchers of Bonny Village who dismembered bodies to fill the great jars. Wear caterpillar masks.",
   },
   {
     id: "er_great_wyrm_theodorix",
@@ -1369,11 +1369,11 @@ export const characters: Character[] = [
   },
   {
     id: "er_count_ymir_mother_of_fingers",
-    name: "Count Ymir, Mother of Fingers",
+    name: "Count Ymir",
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "DLC enigmatic figure obsessed with the Fingers. His title raises questions.",
+    description: "DLC boss encounter. The High Priest of Manus Metyr, obsessed with the Fingers and their origins.",
   },
   {
     id: "er_inquisitor_ghiza",
@@ -1773,7 +1773,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "boss",
     imageUrl: "",
-    description: "A wolf wielding magic swords. Rennala's security system upgrade.",
+    description: "A wolf wielding magic swords. Found guarding champions in Leyndell.",
   },
   {
     id: "er_horned_warrior",
@@ -2867,7 +2867,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "One of Anastasia's younger sisters, a Tarnished-Eater in the Mountaintops.",
+    description: "A giant Albinauric at the Apostate Derelict. The destination of Latenna's heartbreaking questline.",
   },
   {
     id: "er_aurelia",
@@ -2875,7 +2875,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "A Volcano Manor assassination target. Lives in Leyndell.",
+    description: "A spirit jellyfish searching for her little sister. Found at Stargazers' Ruins.",
   },
   {
     id: "er_aureliette",
@@ -2883,7 +2883,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "A Volcano Manor assassination target, related to Aurelia.",
+    description: "Aurelia's little sister. Reuniting them is one of the game's most wholesome moments.",
   },
   {
     id: "er_baleful_shadow",
@@ -2907,7 +2907,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "D's twin brother, found slain in Fia's possession. Can be revived through her questline.",
+    description: "D's twin brother, found catatonic in the Siofra Aqueduct. Give him D's armor and he avenges his brother.",
   },
   {
     id: "er_dolores_sleeping_arrow",
@@ -2915,7 +2915,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "An archer NPC who lives in Volcano Manor before being puppeted by Seluvis.",
+    description: "Known only through her puppet form sold by Seluvis. Fires sleep arrows with deadly aim.",
   },
   {
     id: "er_dragon_communion_priestess",
@@ -2987,7 +2987,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "A young woman searching for Thiollier in the Shadow Realm. Innocent and hopeful.",
+    description: "St. Trina's attendant whom Thiollier is desperately searching for. Found too late.",
   },
   {
     id: "er_lionel_the_lionhearted",
@@ -3003,7 +3003,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "A man-serpent merchant residing in the Shadow Realm's Bonny Village.",
+    description: "Latenna's loyal wolf who carried her across the Lands Between. Found dead at the Slumbering Wolf's Shack.",
   },
   {
     id: "er_nanaya",
@@ -3019,7 +3019,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "An elderly Albinauric hiding in the Mountaintops who holds half of the secret medallion.",
+    description: "An elderly Albinauric hiding in the Village of the Albinaurics who holds half of the secret medallion.",
   },
   {
     id: "er_old_knight_istvan",
@@ -3027,7 +3027,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "A Volcano Manor assassination target imprisoned in Stormhill's evergaol. A knight of the old ways.",
+    description: "A Volcano Manor assassination target. Fought as a red phantom invader near the Warmaster's Shack.",
   },
   {
     id: "er_painter_spirit",
@@ -3035,7 +3035,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "npc",
     imageUrl: "",
-    description: "A ghostly painter spirit found in Stormveil Castle, still at work in death.",
+    description: "Ghostly painters whose finished works can be found across the Lands Between, marking hidden treasures.",
   },
   {
     id: "er_pidia_carian_servant",
@@ -3166,7 +3166,7 @@ export const characters: Character[] = [
     game: "ER",
     type: "mob",
     imageUrl: "",
-    description: "A deathbird-adjacent creature that inflicts death blight just by existing near you. Do not make eye contact.",
+    description: "Bulging-eyed frogs that inflict death blight with their cursed breath. Do not make eye contact.",
   },
   {
     id: "er_bear",
