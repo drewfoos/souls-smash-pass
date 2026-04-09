@@ -15,6 +15,7 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { CharacterImage } from "@/components/CharacterImage";
 import {
+  characters,
   characterById,
   CHARACTER_TYPE_LABELS,
   CHARACTER_TYPE_COLORS,
@@ -487,7 +488,7 @@ export default async function LeaderboardPage() {
               <div className="w-px h-8 bg-white/[0.06]" />
               <div className="text-center">
                 <div className="text-base sm:text-lg font-bold text-priscilla/85">
-                  497
+                  {characters.length}
                 </div>
                 <div className="text-[10px] text-priscilla/30 mt-0.5">Characters</div>
               </div>
