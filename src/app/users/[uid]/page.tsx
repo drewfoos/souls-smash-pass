@@ -37,6 +37,7 @@ const fetchPublicUser = cache(async function fetchPublicUser(uid: string): Promi
       tagline: data.tagline ?? undefined,
       isPublic: true,
       votes: data.votes ?? {},
+      replayCount: data.replayCount ?? 0,
       lastPlayed: 0,           // dummy — not displayed on public page
     } as UserData;
   } catch {
@@ -182,6 +183,11 @@ export default async function PublicUserProfilePage({
         )}
         <p className="text-xs text-ash/40">
           {total} characters judged
+          {(data.replayCount ?? 0) > 0 && (
+            <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-gold/15 text-gold/70 font-mono">
+              NG+{(data.replayCount ?? 0) > 1 ? data.replayCount : ""}
+            </span>
+          )}
         </p>
       </div>
 

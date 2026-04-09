@@ -50,6 +50,8 @@ export interface UserData {
   lastReset?: number;
   /** Run config for the current/last run — used for cross-device deck reconstruction. */
   runConfig?: RunConfig;
+  /** How many times the user has clicked Play Again. */
+  replayCount?: number;
   votes: UserVotes;
 }
 
