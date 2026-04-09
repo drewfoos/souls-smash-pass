@@ -32,6 +32,7 @@ interface UserRow {
   displayName: string;
   photoURL: string | null;
   currentId: number;
+  replayCount: number;
   lastPlayed: number;
   lastReset?: number;
   totalVotes: number;
@@ -181,6 +182,7 @@ export function AdminDashboard() {
           displayName?: string;
           photoURL?: string;
           currentId?: number;
+          replayCount?: number;
           lastPlayed?: number;
           lastReset?: number;
           smashCount?: number;
@@ -194,6 +196,7 @@ export function AdminDashboard() {
           displayName: d.displayName ?? "Tarnished",
           photoURL: d.photoURL ?? null,
           currentId: d.currentId ?? 0,
+          replayCount: d.replayCount ?? 0,
           lastPlayed: d.lastPlayed ?? 0,
           lastReset: d.lastReset,
           totalVotes: d.totalVotes ?? 0,
@@ -323,7 +326,7 @@ export function AdminDashboard() {
       alert(data.message);
       // Update local state
       setUsers((prev) => prev.map((u) => u.uid === uid
-        ? { ...u, totalVotes: 0, smashCount: 0, passCount: 0, smashRate: 0, currentId: 0, lastReset: Date.now() }
+        ? { ...u, totalVotes: 0, smashCount: 0, passCount: 0, smashRate: 0, currentId: 0, replayCount: 0, lastReset: Date.now() }
         : u
       ));
       setResetUserConfirm(null);
@@ -544,7 +547,14 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-3 text-right tabular-nums">
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-gold font-semibold">{u.totalVotes} / {characters.length}</span>
+                            <span className="text-gold font-semibold">
+                              {u.totalVotes} / {characters.length}
+                              {u.replayCount > 0 && (
+                                <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-gold/15 text-gold/70 font-mono">
+                                  NG+{u.replayCount > 1 ? u.replayCount : ""}
+                                </span>
+                              )}
+                            </span>
                             <div className="w-20 h-1.5 bg-dark-600 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gold/60 rounded-full"

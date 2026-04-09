@@ -75,6 +75,7 @@ export async function GET(request: Request) {
         lastPlayed: u?.lastPlayed ?? null,
         lastReset: u?.lastReset ?? null,
         currentId: u?.currentId ?? 0,
+        replayCount: u?.replayCount ?? 0,
         smashCount,
         passCount,
         totalVotes: smashCount + passCount,

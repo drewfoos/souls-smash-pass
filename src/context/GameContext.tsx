@@ -27,6 +27,7 @@ import {
   saveUserProfile,
   getUserData,
   getUserMeta,
+  incrementReplayCount,
   type VoteChoice,
   type RunConfig,
 } from "@/lib/firebase-user";
@@ -1102,6 +1103,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     // any user action reaches here. When multiple run types exist, this call
     // should be scoped to the specific run type being replaced.
     clearProgress(userRef.current ? LS_SCORE_KEY : LS_OFFLINE_KEY);
+
+    // Track replay count in Firebase so admin can distinguish NG+ from new users.
+    if (isReplay && userRef.current) {
+      incrementReplayCount(userRef.current).catch(console.error);
+    }
+
     dispatch({ type: "START_GAME", payload: { games, types, seed: getWeeklySeed(), pool } });
   }, []);
 

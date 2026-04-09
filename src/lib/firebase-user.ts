@@ -79,6 +79,15 @@ export async function saveUserProfile(user: User): Promise<void> {
 // saveUserHistory and saveUserPosition were removed — votes and position are
 // now written exclusively through /api/vote (Admin SDK), not client-side.
 
+/** Increment the replay counter so admin can distinguish NG+ users from new ones. */
+export async function incrementReplayCount(user: User): Promise<void> {
+  const db = getFirebaseDatabase();
+  const countRef = ref(db, `users/${user.uid}/replayCount`);
+  const snap = await get(countRef);
+  const current = typeof snap.val() === "number" ? (snap.val() as number) : 0;
+  await set(countRef, current + 1);
+}
+
 // ---------------------------------------------------------------------------
 // getUserData
 //

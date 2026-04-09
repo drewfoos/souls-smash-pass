@@ -133,6 +133,7 @@ export async function POST(request: Request) {
     rootUpdate[`users/${uid}/votes`] = null;
     rootUpdate[`users/${uid}/currentId`] = 0;
     rootUpdate[`users/${uid}/runConfig`] = null;
+    rootUpdate[`users/${uid}/replayCount`] = 0;
     rootUpdate[`users/${uid}/lastReset`] = timestamp;
 
     // Audit log — persistent record in Firebase
