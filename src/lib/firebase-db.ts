@@ -253,8 +253,14 @@ export async function recordAuthenticatedVotes(
   // Position + run config — written atomically with votes so they never drift.
   // currentIndex comes from the client but the server is already authoritative
   // for vote state; a slightly-off position is harmless (restore logic clamps).
+  // Never decrease currentId — replays reset the client's local index to 0 but
+  // the server should preserve the high-water mark so restore works correctly.
   if (options?.currentIndex !== undefined) {
-    rootUpdate[`users/${uid}/currentId`] = options.currentIndex;
+    const prevSnap = await db.ref(`users/${uid}/currentId`).get();
+    const prevId = typeof prevSnap.val() === "number" ? (prevSnap.val() as number) : 0;
+    if (options.currentIndex > prevId) {
+      rootUpdate[`users/${uid}/currentId`] = options.currentIndex;
+    }
   }
   if (options?.runConfig) {
     rootUpdate[`users/${uid}/runConfig`] = options.runConfig;
